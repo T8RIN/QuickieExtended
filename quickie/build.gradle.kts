@@ -9,8 +9,12 @@ plugins {
 afterEvaluate {
   publishing {
     publications {
-      create<MavenPublication>("bundledRelease") { commonConfig("bundled") }
-      create<MavenPublication>("unbundledRelease") { commonConfig("unbundled") }
+      create<MavenPublication>("mavenJava") {
+        from(components["release"])
+        version = "1.10.3"
+        groupId = "com.github.t8rin"
+        artifactId = "quickie-foss"
+      }
     }
   }
 }
@@ -20,19 +24,6 @@ android {
   resourcePrefix = "quickie"
   buildFeatures {
     viewBinding = true
-  }
-  flavorDimensions += "mlkit"
-  productFlavors {
-    create("bundled").dimension = "mlkit"
-    create("unbundled").dimension = "mlkit"
-  }
-  sourceSets {
-    getByName("bundled").java.srcDirs("src/bundled/kotlin")
-    getByName("unbundled").java.srcDirs("src/unbundled/kotlin")
-  }
-  publishing {
-    singleVariant("bundledRelease")
-    singleVariant("unbundledRelease")
   }
 }
 
@@ -51,11 +42,3 @@ dependencies {
 
 group = "io.github.g00fy2.quickie"
 version = libs.versions.quickie.get()
-
-
-fun MavenPublication.commonConfig(flavor: String) {
-  from(components["${flavor}Release"])
-  artifactId = "quickie-$flavor"
-  version = "1.10.0"
-  groupId = "com.github.t8rin"
-}
