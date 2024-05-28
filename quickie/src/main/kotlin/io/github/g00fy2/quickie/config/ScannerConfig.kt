@@ -2,6 +2,7 @@ package io.github.g00fy2.quickie.config
 
 import androidx.annotation.DrawableRes
 import androidx.annotation.StringRes
+import com.google.zxing.BarcodeFormat
 
 /**
  * Builder for ScannerConfig used in ScanBarcode ActivityResultContract.
@@ -20,7 +21,7 @@ public class ScannerConfig internal constructor(
 ) {
 
   public class Builder {
-    private var barcodeFormats: List<BarcodeFormat> = listOf(BarcodeFormat.FORMAT_ALL_FORMATS)
+    private var barcodeFormats: List<BarcodeFormat> = listOf(BarcodeFormat.QR_CODE)
     private var overlayStringRes: Int = 0
     private var overlayDrawableRes: Int? = 0
     private var hapticSuccessFeedback: Boolean = true
@@ -83,7 +84,7 @@ public class ScannerConfig internal constructor(
      */
     public fun build(): ScannerConfig =
       ScannerConfig(
-        formats = barcodeFormats.map { it.value }.toIntArray(),
+        formats = barcodeFormats.map { it.ordinal }.toIntArray(),
         stringRes = overlayStringRes,
         drawableRes = overlayDrawableRes,
         hapticFeedback = hapticSuccessFeedback,

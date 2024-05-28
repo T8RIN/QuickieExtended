@@ -44,6 +44,6 @@ android {
 
 dependencies {
   implementation(project(":quickie"))
-
+  implementation(libs.zxing.android.embedded)
   implementation(libs.google.materialDesign)
 }

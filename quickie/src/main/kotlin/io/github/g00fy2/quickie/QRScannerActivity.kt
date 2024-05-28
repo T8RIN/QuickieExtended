@@ -26,11 +26,9 @@ import androidx.core.content.IntentCompat
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
-import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.zxing.BarcodeFormat
 import io.github.g00fy2.quickie.config.ParcelableScannerConfig
 import io.github.g00fy2.quickie.databinding.QuickieScannerActivityBinding
-import io.github.g00fy2.quickie.extensions.toParcelableContentType
-import io.github.g00fy2.quickie.utils.MlKitErrorHandler
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -38,7 +36,7 @@ internal class QRScannerActivity : AppCompatActivity() {
 
   private lateinit var binding: QuickieScannerActivityBinding
   private lateinit var analysisExecutor: ExecutorService
-  private var barcodeFormats = intArrayOf(Barcode.FORMAT_QR_CODE)
+  private var barcodeFormats = intArrayOf(BarcodeFormat.QR_CODE.ordinal)
   private var hapticFeedback = true
   private var showTorchToggle = false
   private var showCloseButton = false
@@ -150,7 +148,7 @@ internal class QRScannerActivity : AppCompatActivity() {
     }, ContextCompat.getMainExecutor(this))
   }
 
-  private fun onSuccess(result: Barcode) {
+  private fun onSuccess(result: String) {
     binding.overlayView.isHighlighted = true
     if (hapticFeedback) {
       @Suppress("DEPRECATION")
@@ -160,18 +158,15 @@ internal class QRScannerActivity : AppCompatActivity() {
     setResult(
       Activity.RESULT_OK,
       Intent().apply {
-        putExtra(EXTRA_RESULT_BYTES, result.rawBytes)
-        putExtra(EXTRA_RESULT_VALUE, result.rawValue)
-        putExtra(EXTRA_RESULT_TYPE, result.valueType)
-        putExtra(EXTRA_RESULT_PARCELABLE, result.toParcelableContentType())
+        putExtra(EXTRA_RESULT_VALUE, result)
       }
     )
     finish()
   }
 
-  private fun onFailure(exception: Exception) {
-    setResult(RESULT_ERROR, Intent().putExtra(EXTRA_RESULT_EXCEPTION, exception))
-    if (!MlKitErrorHandler.isResolvableError(this, exception)) finish()
+  private fun onFailure(exception: Throwable) {
+    setResult(RESULT_ERROR, Intent().putExtra(EXTRA_RESULT_EXCEPTION, Exception(exception)))
+    finish()
   }
 
   private fun onPassCompleted(failureOccurred: Boolean) {

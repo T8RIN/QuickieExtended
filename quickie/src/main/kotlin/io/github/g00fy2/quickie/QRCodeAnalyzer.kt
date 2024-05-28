@@ -1,39 +1,35 @@
 package io.github.g00fy2.quickie
 
+import android.graphics.ImageFormat
+import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.google.mlkit.vision.barcode.BarcodeScannerOptions
-import com.google.mlkit.vision.barcode.BarcodeScanning
-import com.google.mlkit.vision.barcode.common.Barcode
-import com.google.mlkit.vision.common.InputImage
+import com.google.zxing.BarcodeFormat
+import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
+import com.google.zxing.MultiFormatReader
+import com.google.zxing.NotFoundException
+import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.common.HybridBinarizer
+import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
+
 
 internal class QRCodeAnalyzer(
-  private val barcodeFormats: IntArray,
-  private val onSuccess: ((Barcode) -> Unit),
-  private val onFailure: ((Exception) -> Unit),
+  private val barcodeFormats: IntArray = IntArray(1) { BarcodeFormat.QR_CODE.ordinal },
+  private val onSuccess: ((String) -> Unit),
+  private val onFailure: ((Throwable) -> Unit),
   private val onPassCompleted: ((Boolean) -> Unit)
 ) : ImageAnalysis.Analyzer {
-
-  private val barcodeScanner by lazy {
-    val optionsBuilder = if (barcodeFormats.size > 1) {
-      BarcodeScannerOptions.Builder().setBarcodeFormats(barcodeFormats.first(), *barcodeFormats.drop(1).toIntArray())
-    } else {
-      BarcodeScannerOptions.Builder().setBarcodeFormats(barcodeFormats.firstOrNull() ?: Barcode.FORMAT_UNKNOWN)
-    }
-    try {
-      BarcodeScanning.getClient(optionsBuilder.build())
-    } catch (e: Exception) { // catch if for some reason MlKitContext has not been initialized
-      onFailure(e)
-      null
-    }
-  }
 
   @Volatile
   private var failureOccurred = false
   private var failureTimestamp = 0L
 
-  @ExperimentalGetImage
+  private val isScanning = AtomicBoolean(false)
+
+  @OptIn(ExperimentalGetImage::class)
   override fun analyze(imageProxy: ImageProxy) {
     if (imageProxy.image == null) return
 
@@ -43,23 +39,142 @@ internal class QRCodeAnalyzer(
       return
     }
 
-    failureOccurred = false
-    barcodeScanner?.let { scanner ->
-      scanner.process(imageProxy.toInputImage())
-        .addOnSuccessListener { codes -> codes.firstNotNullOfOrNull { it }?.let { onSuccess(it) } }
-        .addOnFailureListener {
+    isScanning.set(true)
+
+    reader.apply {
+      setHints(
+        mapOf(
+          DecodeHintType.CHARACTER_SET to Charsets.UTF_8,
+          DecodeHintType.TRY_HARDER to true,
+          DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.map { BarcodeFormat.entries[it] }
+        )
+      )
+    }
+
+    if ((imageProxy.format == ImageFormat.YUV_420_888 || imageProxy.format == ImageFormat.YUV_422_888
+        || imageProxy.format == ImageFormat.YUV_444_888) && imageProxy.planes.size == 3
+    ) {
+      val rotatedImage = RotatedImage(getLuminancePlaneData(imageProxy), imageProxy.width, imageProxy.height)
+      rotateImageArray(rotatedImage, imageProxy.imageInfo.rotationDegrees)
+
+      val planarYUVLuminanceSource = PlanarYUVLuminanceSource(
+        rotatedImage.byteArray,
+        rotatedImage.width,
+        rotatedImage.height,
+        0, 0,
+        rotatedImage.width,
+        rotatedImage.height,
+        false
+      )
+      val hybridBinarizer = HybridBinarizer(planarYUVLuminanceSource)
+      val binaryBitmap = BinaryBitmap(hybridBinarizer)
+      try {
+        val rawResult = reader.decodeWithState(binaryBitmap)
+        onSuccess(rawResult.text)
+
+        onPassCompleted(failureOccurred)
+        imageProxy.close()
+      } catch (e: Throwable) {
+        if (e !is NotFoundException) {
           failureOccurred = true
           failureTimestamp = System.currentTimeMillis()
-          onFailure(it)
+          onFailure(e)
         }
-        .addOnCompleteListener {
-          onPassCompleted(failureOccurred)
-          imageProxy.close()
-        }
+        e.printStackTrace()
+      } finally {
+        reader.reset()
+        imageProxy.close()
+      }
+
+      isScanning.set(false)
     }
   }
 
-  @ExperimentalGetImage
-  @Suppress("UnsafeCallOnNullableType")
-  private fun ImageProxy.toInputImage() = InputImage.fromMediaImage(image!!, imageInfo.rotationDegrees)
+  // 90, 180. 270 rotation
+  private fun rotateImageArray(imageToRotate: RotatedImage, rotationDegrees: Int) {
+    if (rotationDegrees == 0) return // no rotation
+    if (rotationDegrees % 90 != 0) return // only 90 degree times rotations
+
+    val width = imageToRotate.width
+    val height = imageToRotate.height
+
+    val rotatedData = ByteArray(imageToRotate.byteArray.size)
+    for (y in 0 until height) { // we scan the array by rows
+      for (x in 0 until width) {
+        when (rotationDegrees) {
+          90 -> rotatedData[x * height + height - y - 1] =
+            imageToRotate.byteArray[x + y * width] // Fill from top-right toward left (CW)
+          180 -> rotatedData[width * (height - y - 1) + width - x - 1] =
+            imageToRotate.byteArray[x + y * width] // Fill from bottom-right toward up (CW)
+          270 -> rotatedData[y + x * height] =
+            imageToRotate.byteArray[y * width + width - x - 1] // The opposite (CCW) of 90 degrees
+        }
+      }
+    }
+
+    imageToRotate.byteArray = rotatedData
+
+    if (rotationDegrees != 180) {
+      imageToRotate.height = width
+      imageToRotate.width = height
+    }
+  }
+
+  /**
+   * IMPORTANT: There's a known issue with the combination of CameraX and Zxing in some phones,
+   * especially OnePlus phones, where zxing doesn't detect any QR/Barcodes at all.
+   *
+   * To resolve that issue, we're required to cleanup the image data with this fix method
+   * @see <a href="https://github.com/beemdevelopment/Aegis/commit/fb58c877d1b305b1c66db497880da5651dda78d7">Aegis Authenticator Github Commit</a>
+   *
+   * @param image imageProxy from camera analyzer
+   * @return cleaned image bytearray
+   */
+  private fun getLuminancePlaneData(image: ImageProxy): ByteArray {
+    val plane = image.planes[0]
+    val buf: ByteBuffer = plane.buffer
+    val data = ByteArray(buf.remaining())
+    buf.get(data)
+    buf.rewind()
+    val width = image.width
+    val height = image.height
+    val rowStride = plane.rowStride
+    val pixelStride = plane.pixelStride
+
+    // remove padding from the Y plane data
+    val cleanData = ByteArray(width * height)
+    for (y in 0 until height) {
+      for (x in 0 until width) {
+        cleanData[y * width + x] = data[y * rowStride + x * pixelStride]
+      }
+    }
+    return cleanData
+  }
+
+
+  companion object {
+    val reader = MultiFormatReader()
+  }
+}
+
+private data class RotatedImage(var byteArray: ByteArray, var width: Int, var height: Int) {
+  override fun equals(other: Any?): Boolean {
+    if (this === other) return true
+    if (javaClass != other?.javaClass) return false
+
+    other as RotatedImage
+
+    if (!byteArray.contentEquals(other.byteArray)) return false
+    if (width != other.width) return false
+    if (height != other.height) return false
+
+    return true
+  }
+
+  override fun hashCode(): Int {
+    var result = byteArray.contentHashCode()
+    result = 31 * result + width
+    result = 31 * result + height
+    return result
+  }
 }
