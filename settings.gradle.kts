@@ -1,4 +1,4 @@
-include(":quickie", ":sample")
+include(":quickie")
 
 dependencyResolutionManagement {
   repositories {
