@@ -11,7 +11,7 @@ afterEvaluate {
     publications {
       create<MavenPublication>("mavenJava") {
         from(components["release"])
-        version = "1.10.7"
+        version = "1.10.9"
         groupId = "com.github.t8rin"
         artifactId = "quickie-foss"
       }
