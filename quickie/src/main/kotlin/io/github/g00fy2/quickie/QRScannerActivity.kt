@@ -102,6 +102,7 @@ internal class QRScannerActivity : AppCompatActivity() {
 
       val preview = Preview.Builder().build().also { it.setSurfaceProvider(binding.previewView.surfaceProvider) }
       val imageAnalysis = ImageAnalysis.Builder()
+        .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
         .setResolutionSelector(
           ResolutionSelector.Builder().setResolutionStrategy(
             ResolutionStrategy(
