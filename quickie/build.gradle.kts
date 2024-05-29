@@ -11,7 +11,7 @@ afterEvaluate {
     publications {
       create<MavenPublication>("mavenJava") {
         from(components["release"])
-        version = "1.10.4"
+        version = "1.10.7"
         groupId = "com.github.t8rin"
         artifactId = "quickie-foss"
       }
@@ -22,9 +22,25 @@ afterEvaluate {
 android {
   namespace = "io.github.g00fy2.quickie"
   resourcePrefix = "quickie"
+  compileSdk = 34
   buildFeatures {
     viewBinding = true
   }
+
+  defaultConfig {
+    minSdk = 21
+  }
+
+  compileOptions {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+    isCoreLibraryDesugaringEnabled = true
+  }
+
+  kotlinOptions {
+    jvmTarget = JavaVersion.VERSION_17.toString()
+  }
+
 }
 
 dependencies {
@@ -38,6 +54,7 @@ dependencies {
 
   testImplementation(libs.test.junitApi)
   testRuntimeOnly(libs.test.junitEngine)
+  coreLibraryDesugaring(libs.desugaring)
 }
 
 group = "io.github.g00fy2.quickie"

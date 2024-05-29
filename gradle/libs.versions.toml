@@ -21,6 +21,7 @@ dokka = "1.9.20"
 
 junit = "5.10.2"
 zxingAndroidEmbedded = "4.3.0"
+desugaring = "2.0.4"
 
 [libraries]
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
@@ -36,6 +37,7 @@ test-junitApi = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = 
 test-junitEngine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref = "junit" }
 
 detektFormatting = { module = "io.gitlab.arturbosch.detekt:detekt-formatting", version.ref = "detekt" }
+desugaring = { module = "com.android.tools:desugar_jdk_libs", version.ref = "desugaring" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "androidGradle" }
