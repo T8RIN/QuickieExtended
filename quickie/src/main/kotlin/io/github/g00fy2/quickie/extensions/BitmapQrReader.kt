@@ -10,6 +10,7 @@ import java.io.ByteArrayOutputStream
 import kotlin.experimental.inv
 
 fun Bitmap.readQrCode(): String {
+
   val byteArray = ByteArrayOutputStream().use {
     compress(Bitmap.CompressFormat.JPEG, 100, it)
 
