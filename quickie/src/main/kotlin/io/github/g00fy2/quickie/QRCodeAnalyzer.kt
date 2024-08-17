@@ -185,7 +185,7 @@ internal class QRCodeAnalyzer(
 
 
   companion object {
-    val reader = MultiFormatReader()
+    private val reader = MultiFormatReader()
   }
 }
 
