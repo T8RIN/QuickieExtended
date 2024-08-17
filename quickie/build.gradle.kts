@@ -103,13 +103,6 @@ afterEvaluate {
   }
 }
 
-signing {
-  findStringProperty("signing.keyId")
-  findStringProperty("signing.password")
-  findStringProperty("signing.secretKeyRingFile")
-  sign(publishing.publications)
-}
-
 fun MavenPublication.commonConfig(flavor: String) {
   from(components["${flavor}Release"])
   artifactId = "quickie-$flavor"
@@ -118,7 +111,7 @@ fun MavenPublication.commonConfig(flavor: String) {
   pom {
     name = "quickie-$flavor"
     description = "Android QR code scanning library"
-    url = "https://github.com/G00fY2/quickie"
+    url = "https://github.com/T8RIN/QuickieExtended"
     licenses {
       license {
         name = "MIT License"
@@ -133,9 +126,9 @@ fun MavenPublication.commonConfig(flavor: String) {
       }
     }
     scm {
-      connection = "https://github.com/G00fY2/quickie.git"
-      developerConnection = "https://github.com/G00fY2/quickie.git"
-      url = "https://github.com/G00fY2/quickie"
+      connection = "https://github.com/T8RIN/QuickieExtended.git"
+      developerConnection = "https://github.com/T8RIN/QuickieExtended.git"
+      url = "https://github.com/T8RIN/QuickieExtended"
     }
   }
 }
