@@ -1,6 +1,7 @@
 package io.github.g00fy2.quickie
 
 import android.Manifest.permission.CAMERA
+import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
 import android.content.Intent
@@ -9,6 +10,7 @@ import android.os.Bundle
 import android.util.Size
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
+import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
 import androidx.activity.result.contract.ActivityResultContracts
@@ -84,6 +86,7 @@ internal class QRScannerActivity : AppCompatActivity() {
     analysisExecutor.shutdown()
   }
 
+  @SuppressLint("ClickableViewAccessibility")
   private fun startCamera() {
     val cameraProviderFuture = try {
       ProcessCameraProvider.getInstance(this)
@@ -134,6 +137,23 @@ internal class QRScannerActivity : AppCompatActivity() {
 
       try {
         val camera = cameraProvider.bindToLifecycle(this, cameraSelector, preview, imageAnalysis)
+
+        val listener = object : ScaleGestureDetector.SimpleOnScaleGestureListener() {
+          override fun onScale(detector: ScaleGestureDetector): Boolean {
+            val currentZoomRatio: Float = camera.cameraInfo.zoomState.value?.zoomRatio ?: 1f
+            val delta = detector.scaleFactor
+            camera.cameraControl.setZoomRatio(currentZoomRatio * delta)
+            return true
+          }
+        }
+
+        val scaleGestureDetector = ScaleGestureDetector(this, listener)
+
+        binding.previewView.setOnTouchListener { _, event ->
+          scaleGestureDetector.onTouchEvent(event)
+          return@setOnTouchListener true
+        }
+
         binding.overlayView.visibility = View.VISIBLE
         binding.overlayView.setCloseVisibilityAndOnClick(showCloseButton) { finish() }
         if (showTorchToggle && camera.cameraInfo.hasFlashUnit()) {

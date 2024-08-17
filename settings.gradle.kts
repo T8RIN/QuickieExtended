@@ -1,5 +1,3 @@
-include(":quickie")
-
 dependencyResolutionManagement {
   repositories {
     google()
@@ -14,3 +12,5 @@ pluginManagement {
     gradlePluginPortal()
   }
 }
+
+include(":quickie")
