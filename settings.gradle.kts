@@ -13,4 +13,5 @@ pluginManagement {
   }
 }
 
+include(":quickie")
 include(":quickie-foss")
