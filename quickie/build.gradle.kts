@@ -62,29 +62,8 @@ dependencies {
 group = "io.github.g00fy2.quickie"
 version = libs.versions.quickie.get()
 
-tasks.register<Jar>("androidJavadocJar") {
-  archiveClassifier = "javadoc"
-  from(layout.buildDirectory.dir("dokka/javadoc"))
-  dependsOn("dokkaJavadoc")
-}
-
-tasks.register<Jar>("androidBundledSourcesJar") {
-  archiveClassifier = "sources"
-  from(android.sourceSets.getByName("main").java.srcDirs, android.sourceSets.getByName("bundled").java.srcDirs)
-}
-
-tasks.register<Jar>("androidUnbundledSourcesJar") {
-  archiveClassifier = "sources"
-  from(android.sourceSets.getByName("main").java.srcDirs, android.sourceSets.getByName("unbundled").java.srcDirs)
-}
 
 afterEvaluate {
-  tasks.withType<Test>().configureEach {
-    useJUnitPlatform()
-    testLogging.events("failed", "passed", "skipped")
-    enabled = name.endsWith("DebugUnitTest")
-  }
-
   publishing {
     publications {
       create<MavenPublication>("bundledRelease") { commonConfig("bundled") }
@@ -106,8 +85,6 @@ afterEvaluate {
 fun MavenPublication.commonConfig(flavor: String) {
   from(components["${flavor}Release"])
   artifactId = "quickie-$flavor"
-  artifact(tasks.named("androidJavadocJar"))
-  artifact(tasks.named("android${flavor.replaceFirstChar { it.titlecase() }}SourcesJar"))
   pom {
     name = "quickie-$flavor"
     description = "Android QR code scanning library"
