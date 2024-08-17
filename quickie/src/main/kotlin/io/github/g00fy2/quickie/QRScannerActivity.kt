@@ -149,7 +149,7 @@ internal class QRScannerActivity : AppCompatActivity() {
 
         val scaleGestureDetector = ScaleGestureDetector(this, listener)
 
-        binding.previewView.setOnTouchListener { _, event ->
+        binding.overlayView.setOnTouchListener { _, event ->
           scaleGestureDetector.onTouchEvent(event)
           return@setOnTouchListener true
         }
