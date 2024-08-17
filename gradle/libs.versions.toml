@@ -1,9 +1,9 @@
 [versions]
-quickie = "1.12.2"
+quickie = "1.12.3"
 
 androidconfig-minSdk = "21"
 androidconfig-compileSdk = "34"
-androidconfig-targetSdk = "33"
+androidconfig-targetSdk = "34"
 androidconfig-buildTools = "34.0.0"
 
 androidGradle = "8.5.2"
@@ -25,8 +25,10 @@ desugaring = "2.0.4"
 
 barcodeScanning = "17.3.0"
 barcodeScanningGms = "18.3.1"
+coil = "2.7.0"
 
 [libraries]
+coil = { module = "io.coil-kt:coil", version.ref = "coil" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
 androidx-camera = { module = "androidx.camera:camera-camera2", version.ref = "cameraX" }
 androidx-cameraLifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraX" }

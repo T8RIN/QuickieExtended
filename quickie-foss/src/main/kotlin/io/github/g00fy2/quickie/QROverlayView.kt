@@ -131,6 +131,12 @@ internal class QROverlayView @JvmOverloads constructor(
     if (visible) binding.torchImageView.setTintAndStateAwareBackground()
   }
 
+  fun setGalleryVisibilityAndOnClick(visible: Boolean, action: (Boolean) -> Unit = {}) {
+    binding.galleryImageView.visibility = if (visible) View.VISIBLE else View.GONE
+    binding.galleryImageView.setOnClickListener { action(!it.isSelected) }
+    if (visible) binding.galleryImageView.setTintAndStateAwareBackground()
+  }
+
   fun setTorchState(on: Boolean) {
     binding.torchImageView.isSelected = on
   }

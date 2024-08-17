@@ -4,9 +4,12 @@ import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
 import android.app.Activity
 import android.app.Dialog
+import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
+import android.net.Uri
 import android.os.Bundle
+import android.provider.MediaStore
 import android.util.Size
 import android.view.HapticFeedbackConstants
 import android.view.KeyEvent
@@ -25,16 +28,78 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import androidx.core.graphics.drawable.toBitmap
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
+import coil.imageLoader
+import coil.request.ImageRequest
 import com.google.zxing.BarcodeFormat
 import io.github.g00fy2.quickie.config.ParcelableScannerConfig
 import io.github.g00fy2.quickie.databinding.QuickieScannerActivityBinding
+import io.github.g00fy2.quickie.extensions.parcelable
+import io.github.g00fy2.quickie.extensions.parcelableArrayList
+import io.github.g00fy2.quickie.extensions.readQrCode
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
+private fun ClipData.clipList() = List(
+  size = itemCount,
+  init = {
+    getItemAt(it).uri
+  }
+).filterNotNull()
+
 internal class QRScannerActivity : AppCompatActivity() {
+
+  private val pickImageLauncher = registerForActivityResult(
+    ActivityResultContracts.StartActivityForResult()
+  ) { result ->
+    val intent = result.data
+    val clipData = intent?.clipData
+
+    if (clipData != null) {
+      clipData.clipList().firstOrNull()
+    } else {
+      intent?.data ?: when (intent?.action) {
+        Intent.ACTION_SEND_MULTIPLE -> {
+          intent.parcelableArrayList<Uri>(Intent.EXTRA_STREAM)?.firstOrNull()
+        }
+        Intent.ACTION_SEND -> {
+          intent.parcelable<Uri>(Intent.EXTRA_STREAM)
+        }
+        else -> null
+      }
+    }?.let { uri ->
+      imageLoader.enqueue(
+        ImageRequest.Builder(this)
+          .data(uri)
+          .size(1500, 1500)
+          .target {
+            it.toBitmap().readQrCode(
+              onSuccess = ::onSuccess,
+              onFailure = ::onFailure
+            )
+          }.build()
+      )
+    }
+  }
+
+  private fun pickImage() {
+    val intent = Intent(
+      Intent.ACTION_PICK,
+      MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+    ).apply {
+      type = "image/*"
+      putExtra(Intent.EXTRA_ALLOW_MULTIPLE, false)
+    }
+    pickImageLauncher.launch(
+      Intent.createChooser(
+        intent,
+        getString(R.string.quickie_scan_qr_code)
+      )
+    )
+  }
 
   private lateinit var binding: QuickieScannerActivityBinding
   private lateinit var analysisExecutor: ExecutorService
@@ -162,6 +227,7 @@ internal class QRScannerActivity : AppCompatActivity() {
         } else {
           binding.overlayView.setTorchVisibilityAndOnClick(false)
         }
+        binding.overlayView.setGalleryVisibilityAndOnClick(true) { pickImage() }
       } catch (e: Exception) {
         binding.overlayView.visibility = View.INVISIBLE
         onFailure(e)

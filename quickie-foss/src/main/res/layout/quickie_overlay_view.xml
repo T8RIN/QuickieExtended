@@ -87,4 +87,17 @@
         />
   </LinearLayout>
 
+  <androidx.appcompat.widget.AppCompatImageView
+      android:id="@+id/gallery_image_view"
+      android:layout_width="48dp"
+      android:layout_height="48dp"
+      android:layout_gravity="bottom|start"
+      android:layout_margin="12dp"
+      android:background="@drawable/quickie_bg_round"
+      android:padding="12dp"
+      android:visibility="gone"
+      app:srcCompat="@drawable/quickie_ic_image"
+      tools:visibility="visible"
+      />
+
 </merge>

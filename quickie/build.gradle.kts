@@ -43,6 +43,7 @@ android {
 }
 
 dependencies {
+  implementation(libs.coil)
   implementation(libs.androidx.appcompat)
   implementation(libs.androidx.core)
 
