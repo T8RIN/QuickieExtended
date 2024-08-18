@@ -75,6 +75,7 @@ internal class QRScannerActivity : AppCompatActivity() {
         ImageRequest.Builder(this)
           .data(uri)
           .size(1500, 1500)
+          .allowHardware(false)
           .target {
             it.toBitmap().readQrCode(
               onSuccess = ::onSuccess,

@@ -1,3 +1,5 @@
+@file:Suppress("UnstableApiUsage")
+
 dependencyResolutionManagement {
   repositories {
     google()
@@ -15,3 +17,4 @@ pluginManagement {
 
 include(":quickie")
 include(":quickie-foss")
+include(":sample")
