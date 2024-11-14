@@ -10,7 +10,7 @@ plugins {
 android {
   namespace = "io.github.g00fy2.quickie"
   resourcePrefix = "quickie"
-  compileSdk = 34
+  compileSdk = 35
   buildFeatures {
     viewBinding = true
   }

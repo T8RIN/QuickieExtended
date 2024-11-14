@@ -5,10 +5,10 @@ plugins {
 
 android {
   namespace = "io.github.g00fy2.quickiesample"
-  compileSdk = 34
+  compileSdk = 35
   defaultConfig {
     minSdk = 21
-    targetSdk = 34
+    targetSdk = 35
     applicationId = "io.github.g00fy2.quickiesample"
     versionCode = 1
     versionName = "1.0"
