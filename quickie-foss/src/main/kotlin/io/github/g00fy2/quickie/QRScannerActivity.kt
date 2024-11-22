@@ -35,7 +35,7 @@ import coil3.imageLoader
 import coil3.request.ImageRequest
 import coil3.request.allowHardware
 import coil3.toBitmap
-import com.google.zxing.BarcodeFormat
+import io.github.g00fy2.quickie.config.BarcodeFormat
 import io.github.g00fy2.quickie.config.ParcelableScannerConfig
 import io.github.g00fy2.quickie.databinding.QuickieScannerActivityBinding
 import io.github.g00fy2.quickie.extensions.parcelable
@@ -245,7 +245,7 @@ internal class QRScannerActivity : AppCompatActivity() {
       binding.overlayView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, flags)
     }
     setResult(
-      Activity.RESULT_OK,
+      RESULT_OK,
       Intent().apply {
         putExtra(EXTRA_RESULT_VALUE, result)
       }

@@ -23,7 +23,7 @@ import io.github.g00fy2.quickiesample.databinding.ActivityMainBinding
 class MainActivity : AppCompatActivity() {
 
   private lateinit var binding: ActivityMainBinding
-  private var selectedBarcodeFormat = BarcodeFormat.FORMAT_ALL_FORMATS
+  private var selectedBarcodeFormat = BarcodeFormat.QR_CODE
 
   private val scanQrCode = registerForActivityResult(ScanQRCode(), ::showSnackbar)
   private val scanCustomCode = registerForActivityResult(ScanCustomCode(), ::showSnackbar)

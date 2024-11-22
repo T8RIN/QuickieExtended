@@ -20,7 +20,7 @@ class ScannerConfig internal constructor(
 ) {
 
   class Builder {
-    private var barcodeFormats: List<BarcodeFormat> = listOf(BarcodeFormat.FORMAT_ALL_FORMATS)
+    private var barcodeFormats: List<BarcodeFormat> = listOf(BarcodeFormat.QR_CODE)
     private var overlayStringRes: Int = 0
     private var overlayDrawableRes: Int? = 0
     private var hapticSuccessFeedback: Boolean = true

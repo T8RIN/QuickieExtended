@@ -10,13 +10,13 @@ import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
-import com.google.zxing.BarcodeFormat
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import io.github.g00fy2.quickie.config.BarcodeFormat
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicBoolean
 import kotlin.experimental.inv
@@ -52,7 +52,7 @@ internal class QRCodeAnalyzer(
         mapOf(
           DecodeHintType.CHARACTER_SET to Charsets.UTF_8,
           DecodeHintType.TRY_HARDER to true,
-          DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.map { BarcodeFormat.entries[it] }
+          DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.toList().mapNotNull { BarcodeFormat.entries[it].value }
         )
       )
     }
@@ -212,7 +212,7 @@ private fun invert(src: Bitmap): Bitmap {
   matrixInvert.preConcat(matrixGrayscale)
 
   val filter = ColorMatrixColorFilter(matrixInvert)
-  paint.setColorFilter(filter)
+  paint.colorFilter = filter
 
   canvas.drawBitmap(src, 0f, 0f, paint)
   return bitmap

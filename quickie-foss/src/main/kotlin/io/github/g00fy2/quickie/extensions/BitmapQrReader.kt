@@ -20,21 +20,21 @@ fun Bitmap.readQrCode(
     val reader = QRCodeReader()
 
     runCatching {
-      val intArray = IntArray(getWidth() * getHeight())
-      getPixels(intArray, 0, getWidth(), 0, 0, getWidth(), getHeight())
-      val source: LuminanceSource = RGBLuminanceSource(getWidth(), getHeight(), intArray)
+      val intArray = IntArray(width * height)
+      getPixels(intArray, 0, width, 0, 0, width, height)
+      val source: LuminanceSource = RGBLuminanceSource(width, height, intArray)
       val result = reader.decode(BinaryBitmap(HybridBinarizer(source)))
 
       onSuccess(result.text)
     }.getOrElse {
       if (it !is NotFoundException) onFailure(it)
       else {
-        val intArray = IntArray(getWidth() * getHeight())
-        getPixels(intArray, 0, getWidth(), 0, 0, getWidth(), getHeight())
+        val intArray = IntArray(width * height)
+        getPixels(intArray, 0, width, 0, 0, width, height)
         for (y in intArray.indices) {
           intArray[y] = intArray[y].inv()
         }
-        val source: LuminanceSource = RGBLuminanceSource(getWidth(), getHeight(), intArray)
+        val source: LuminanceSource = RGBLuminanceSource(width, height, intArray)
         val result = runCatching {
           reader.decode(BinaryBitmap(HybridBinarizer(source)))
         }.onFailure(onFailure).getOrNull() ?: return@launch
