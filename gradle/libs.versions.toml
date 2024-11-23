@@ -11,7 +11,7 @@ cameraX = "1.4.0"
 
 materialDesign = "1.12.0"
 
-detekt = "1.23.6"
+detekt = "1.23.7"
 dokka = "1.9.20"
 
 junit = "5.10.2"
