@@ -14,11 +14,16 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 fun Bitmap.readQrCode(
+  barcodeFormats: IntArray,
   onSuccess: (String) -> Unit,
   onFailure: (Throwable) -> Unit
 ) {
   CoroutineScope(Dispatchers.Default).launch {
-    val optionsBuilder = BarcodeScannerOptions.Builder().setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+    val optionsBuilder = if (barcodeFormats.size > 1) {
+      BarcodeScannerOptions.Builder().setBarcodeFormats(barcodeFormats.first(), *barcodeFormats.drop(1).toIntArray())
+    } else {
+      BarcodeScannerOptions.Builder().setBarcodeFormats(barcodeFormats.firstOrNull() ?: Barcode.FORMAT_UNKNOWN)
+    }
 
     val barcodeScanner = runCatching {
       BarcodeScanning.getClient(optionsBuilder.build())

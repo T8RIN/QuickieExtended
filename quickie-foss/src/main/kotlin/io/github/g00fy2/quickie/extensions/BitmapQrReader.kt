@@ -2,22 +2,33 @@ package io.github.g00fy2.quickie.extensions
 
 import android.graphics.Bitmap
 import com.google.zxing.BinaryBitmap
+import com.google.zxing.DecodeHintType
 import com.google.zxing.LuminanceSource
+import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
-import com.google.zxing.qrcode.QRCodeReader
+import io.github.g00fy2.quickie.config.BarcodeFormat
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
 
 fun Bitmap.readQrCode(
+  barcodeFormats: IntArray,
   onSuccess: (String) -> Unit,
   onFailure: (Throwable) -> Unit
 ) {
   CoroutineScope(Dispatchers.Default).launch {
-    val reader = QRCodeReader()
+    val reader = MultiFormatReader().apply {
+      setHints(
+        mapOf(
+          DecodeHintType.CHARACTER_SET to Charsets.UTF_8,
+          DecodeHintType.TRY_HARDER to true,
+          DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.toList().mapNotNull { BarcodeFormat.entries[it].value }
+        )
+      )
+    }
 
     runCatching {
       val intArray = IntArray(width * height)

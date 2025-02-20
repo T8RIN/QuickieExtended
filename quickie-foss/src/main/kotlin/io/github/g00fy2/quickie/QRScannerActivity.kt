@@ -2,7 +2,6 @@ package io.github.g00fy2.quickie
 
 import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
-import android.app.Activity
 import android.app.Dialog
 import android.content.ClipData
 import android.content.Intent
@@ -79,6 +78,7 @@ internal class QRScannerActivity : AppCompatActivity() {
           .allowHardware(false)
           .target {
             it.toBitmap().readQrCode(
+              barcodeFormats = barcodeFormats,
               onSuccess = ::onSuccess,
               onFailure = ::onFailure
             )

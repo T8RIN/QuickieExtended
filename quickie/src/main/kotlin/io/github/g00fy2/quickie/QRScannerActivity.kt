@@ -81,6 +81,7 @@ internal class QRScannerActivity : AppCompatActivity() {
           .allowHardware(false)
           .target { drawable ->
             drawable.toBitmap().readQrCode(
+              barcodeFormats = barcodeFormats,
               onSuccess = ::onSuccess,
               onFailure = {
                 if (it is Exception) onFailure(it)
@@ -249,7 +250,7 @@ internal class QRScannerActivity : AppCompatActivity() {
       binding.overlayView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, flags)
     }
     setResult(
-      Activity.RESULT_OK,
+      RESULT_OK,
       Intent().apply {
         putExtra(EXTRA_RESULT_BYTES, result.toByteArray())
         putExtra(EXTRA_RESULT_VALUE, result)
@@ -266,7 +267,7 @@ internal class QRScannerActivity : AppCompatActivity() {
       binding.overlayView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, flags)
     }
     setResult(
-      Activity.RESULT_OK,
+      RESULT_OK,
       Intent().apply {
         putExtra(EXTRA_RESULT_BYTES, result.rawBytes)
         putExtra(EXTRA_RESULT_VALUE, result.rawValue)
