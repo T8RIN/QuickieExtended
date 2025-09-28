@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
@@ -10,14 +12,15 @@ plugins {
 android {
   namespace = "io.github.g00fy2.quickie"
   resourcePrefix = "quickie"
-  compileSdk = 35
+
+  compileSdk = libs.versions.androidCompileSdk.get().toIntOrNull()
+  defaultConfig {
+    minSdk = libs.versions.androidMinSdk.get().toIntOrNull()
+  }
   buildFeatures {
     viewBinding = true
   }
 
-  defaultConfig {
-    minSdk = 21
-  }
   flavorDimensions += "mlkit"
   productFlavors {
     create("bundled").dimension = "mlkit"
@@ -37,8 +40,8 @@ android {
     isCoreLibraryDesugaringEnabled = true
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_17.toString()
+  kotlin {
+    compilerOptions.jvmTarget = JvmTarget.fromTarget(JavaVersion.VERSION_17.toString())
   }
 }
 

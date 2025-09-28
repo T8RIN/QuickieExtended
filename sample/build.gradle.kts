@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(libs.plugins.android.application)
   alias(libs.plugins.kotlin.android)
@@ -5,10 +7,10 @@ plugins {
 
 android {
   namespace = "io.github.g00fy2.quickiesample"
-  compileSdk = 35
+  compileSdk = libs.versions.androidCompileSdk.get().toIntOrNull()
   defaultConfig {
-    minSdk = 21
-    targetSdk = 35
+    minSdk = libs.versions.androidMinSdk.get().toIntOrNull()
+    targetSdk = libs.versions.androidTargetSdk.get().toIntOrNull()
     applicationId = "io.github.g00fy2.quickiesample"
     versionCode = 1
     versionName = "1.0"
@@ -49,13 +51,13 @@ android {
     isCoreLibraryDesugaringEnabled = true
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_17.toString()
+  kotlin {
+    compilerOptions.jvmTarget = JvmTarget.fromTarget(JavaVersion.VERSION_17.toString())
   }
 }
 
 dependencies {
-  implementation(project(":quickie"))
+  implementation(project(":quickie-foss"))
 
   coreLibraryDesugaring(libs.desugaring)
   implementation(libs.google.materialDesign)

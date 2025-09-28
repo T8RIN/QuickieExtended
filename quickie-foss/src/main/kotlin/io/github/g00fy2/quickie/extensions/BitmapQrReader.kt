@@ -1,5 +1,6 @@
 package io.github.g00fy2.quickie.extensions
 
+import android.content.Intent
 import android.graphics.Bitmap
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
@@ -9,14 +10,26 @@ import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
 import io.github.g00fy2.quickie.config.BarcodeFormat
+import io.github.g00fy2.quickie.content.QRContent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-
 fun Bitmap.readQrCode(
   barcodeFormats: IntArray,
-  onSuccess: (String) -> Unit,
+  onSuccess: (QRContent) -> Unit,
+  onFailure: (Throwable) -> Unit
+) {
+  readQrCodeIntent(
+    barcodeFormats = barcodeFormats,
+    onSuccess = { onSuccess(it.toQuickieContentType()) },
+    onFailure = onFailure
+  )
+}
+
+fun Bitmap.readQrCodeIntent(
+  barcodeFormats: IntArray,
+  onSuccess: (Intent) -> Unit,
   onFailure: (Throwable) -> Unit
 ) {
   CoroutineScope(Dispatchers.Default).launch {
@@ -36,7 +49,7 @@ fun Bitmap.readQrCode(
       val source: LuminanceSource = RGBLuminanceSource(width, height, intArray)
       val result = reader.decode(BinaryBitmap(HybridBinarizer(source)))
 
-      onSuccess(result.text)
+      onSuccess(result.toIntent())
     }.getOrElse {
       if (it !is NotFoundException) onFailure(it)
       else {
@@ -50,7 +63,7 @@ fun Bitmap.readQrCode(
           reader.decode(BinaryBitmap(HybridBinarizer(source)))
         }.onFailure(onFailure).getOrNull() ?: return@launch
 
-        onSuccess(result.text)
+        onSuccess(result.toIntent())
       }
     }
   }

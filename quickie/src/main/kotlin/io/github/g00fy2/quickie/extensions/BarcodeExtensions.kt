@@ -1,7 +1,12 @@
 package io.github.g00fy2.quickie.extensions
 
+import android.content.Intent
 import android.os.Parcelable
 import com.google.mlkit.vision.barcode.common.Barcode
+import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_BYTES
+import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_PARCELABLE
+import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_TYPE
+import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_VALUE
 import io.github.g00fy2.quickie.content.AddressParcelable
 import io.github.g00fy2.quickie.content.CalendarDateTimeParcelable
 import io.github.g00fy2.quickie.content.CalendarEventParcelable
@@ -13,6 +18,20 @@ import io.github.g00fy2.quickie.content.PhoneParcelable
 import io.github.g00fy2.quickie.content.SmsParcelable
 import io.github.g00fy2.quickie.content.UrlBookmarkParcelable
 import io.github.g00fy2.quickie.content.WifiParcelable
+
+object DataType {
+  const val TYPE_UNKNOWN = 0
+  const val TYPE_WORK = 1
+  const val TYPE_HOME = 2
+  const val TYPE_FAX = 3
+  const val TYPE_MOBILE = 4
+
+  object Wifi {
+    const val TYPE_OPEN = 1
+    const val TYPE_WPA = 2
+    const val TYPE_WEP = 3
+  }
+}
 
 internal fun Barcode.toParcelableContentType(): Parcelable? {
   return when (valueType) {
@@ -58,6 +77,15 @@ internal fun Barcode.toParcelableContentType(): Parcelable? {
       )
     }
     else -> null // TYPE_TEXT, TYPE_ISBN, TYPE_PRODUCT, TYPE_DRIVER_LICENSE, TYPE_UNKNOWN
+  }
+}
+
+internal fun Barcode.toIntent(): Intent {
+  return Intent().apply {
+    putExtra(EXTRA_RESULT_BYTES, rawBytes)
+    putExtra(EXTRA_RESULT_VALUE, rawValue)
+    putExtra(EXTRA_RESULT_TYPE, valueType)
+    putExtra(EXTRA_RESULT_PARCELABLE, toParcelableContentType())
   }
 }
 

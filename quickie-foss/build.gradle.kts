@@ -1,8 +1,9 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.parcelize)
-  alias(libs.plugins.kotlin.dokka)
   id("maven-publish")
 }
 
@@ -11,7 +12,7 @@ afterEvaluate {
     publications {
       create<MavenPublication>("mavenJava") {
         from(components["release"])
-        version = "1.12.4"
+        version = libs.versions.quickie.get()
         groupId = "com.github.t8rin"
         artifactId = "quickie-foss"
       }
@@ -22,13 +23,13 @@ afterEvaluate {
 android {
   namespace = "io.github.g00fy2.quickie"
   resourcePrefix = "quickie"
-  compileSdk = 35
+
+  compileSdk = libs.versions.androidCompileSdk.get().toIntOrNull()
+  defaultConfig {
+    minSdk = libs.versions.androidMinSdk.get().toIntOrNull()
+  }
   buildFeatures {
     viewBinding = true
-  }
-
-  defaultConfig {
-    minSdk = 21
   }
 
   compileOptions {
@@ -37,8 +38,8 @@ android {
     isCoreLibraryDesugaringEnabled = true
   }
 
-  kotlinOptions {
-    jvmTarget = JavaVersion.VERSION_17.toString()
+  kotlin {
+    compilerOptions.jvmTarget = JvmTarget.fromTarget(JavaVersion.VERSION_17.toString())
   }
 
 }

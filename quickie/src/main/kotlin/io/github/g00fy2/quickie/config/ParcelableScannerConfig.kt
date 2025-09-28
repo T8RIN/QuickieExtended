@@ -15,3 +15,16 @@ internal class ParcelableScannerConfig(
   val showCloseButton: Boolean,
   val keepScreenOn: Boolean,
 ) : Parcelable
+
+internal fun ScannerConfig.toParcelableConfig() =
+  ParcelableScannerConfig(
+    formats = formats,
+    stringRes = stringRes,
+    drawableRes = drawableRes,
+    hapticFeedback = hapticFeedback,
+    showTorchToggle = showTorchToggle,
+    horizontalFrameRatio = horizontalFrameRatio,
+    useFrontCamera = useFrontCamera,
+    showCloseButton = showCloseButton,
+    keepScreenOn = keepScreenOn,
+  )

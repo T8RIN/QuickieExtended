@@ -1,11 +1,6 @@
 package io.github.g00fy2.quickie
 
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.ColorMatrix
-import android.graphics.ColorMatrixColorFilter
 import android.graphics.ImageFormat
-import android.graphics.Paint
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
@@ -15,6 +10,7 @@ import com.google.zxing.DecodeHintType
 import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
+import com.google.zxing.Result
 import com.google.zxing.common.HybridBinarizer
 import io.github.g00fy2.quickie.config.BarcodeFormat
 import java.nio.ByteBuffer
@@ -24,7 +20,7 @@ import kotlin.experimental.inv
 
 internal class QRCodeAnalyzer(
   private val barcodeFormats: IntArray = IntArray(1) { BarcodeFormat.QR_CODE.ordinal },
-  private val onSuccess: ((String) -> Unit),
+  private val onSuccess: ((Result) -> Unit),
   private val onFailure: ((Throwable) -> Unit),
   private val onPassCompleted: ((Boolean) -> Unit)
 ) : ImageAnalysis.Analyzer {
@@ -77,7 +73,7 @@ internal class QRCodeAnalyzer(
           val hybridBinarizer = HybridBinarizer(planarYUVLuminanceSource)
           val binaryBitmap = BinaryBitmap(hybridBinarizer)
           val rawResult = reader.decodeWithState(binaryBitmap)
-          onSuccess(rawResult.text)
+          onSuccess(rawResult)
 
           onPassCompleted(failureOccurred)
           imageProxy.close()
@@ -100,7 +96,7 @@ internal class QRCodeAnalyzer(
             val hybridBinarizer = HybridBinarizer(planarYUVLuminanceSource)
             val binaryBitmap = BinaryBitmap(hybridBinarizer)
             val rawResult = reader.decodeWithState(binaryBitmap)
-            onSuccess(rawResult.text)
+            onSuccess(rawResult)
 
             onPassCompleted(failureOccurred)
             imageProxy.close()
@@ -187,35 +183,6 @@ internal class QRCodeAnalyzer(
   companion object {
     private val reader = MultiFormatReader()
   }
-}
-
-private fun invert(src: Bitmap): Bitmap {
-  val height = src.height
-  val width = src.width
-
-  val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-  val canvas = Canvas(bitmap)
-  val paint = Paint()
-
-  val matrixGrayscale = ColorMatrix()
-  matrixGrayscale.setSaturation(0f)
-
-  val matrixInvert = ColorMatrix()
-  matrixInvert.set(
-    floatArrayOf(
-      -1.0f, 0.0f, 0.0f, 0.0f, 255.0f,
-      0.0f, -1.0f, 0.0f, 0.0f, 255.0f,
-      0.0f, 0.0f, -1.0f, 0.0f, 255.0f,
-      0.0f, 0.0f, 0.0f, 1.0f, 0.0f
-    )
-  )
-  matrixInvert.preConcat(matrixGrayscale)
-
-  val filter = ColorMatrixColorFilter(matrixInvert)
-  paint.colorFilter = filter
-
-  canvas.drawBitmap(src, 0f, 0f, paint)
-  return bitmap
 }
 
 private data class RotatedImage(var byteArray: ByteArray, var width: Int, var height: Int) {

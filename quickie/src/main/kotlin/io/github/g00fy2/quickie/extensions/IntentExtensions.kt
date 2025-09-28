@@ -1,7 +1,6 @@
 package io.github.g00fy2.quickie.extensions
 
 import android.content.Intent
-import android.os.Build
 import android.os.Parcelable
 import androidx.core.content.IntentCompat
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -48,7 +47,7 @@ internal fun Intent?.toQuickieContentType(): QRContent {
 private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?): QRContent? {
   return when (extras?.getInt(QRScannerActivity.EXTRA_RESULT_TYPE, Barcode.TYPE_UNKNOWN)) {
     Barcode.TYPE_CONTACT_INFO -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, ContactInfoParcelable::class.java)?.let {
+      parcelable<ContactInfoParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         ContactInfo(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -63,7 +62,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_EMAIL -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, EmailParcelable::class.java)?.let {
+      parcelable<EmailParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         Email(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -75,7 +74,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_PHONE -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, PhoneParcelable::class.java)?.let {
+      parcelable<PhoneParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         Phone(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -85,7 +84,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_SMS -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, SmsParcelable::class.java)?.let {
+      parcelable<SmsParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         Sms(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -95,7 +94,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_URL -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, UrlBookmarkParcelable::class.java)?.let {
+      parcelable<UrlBookmarkParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         Url(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -105,7 +104,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_WIFI -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, WifiParcelable::class.java)?.let {
+      parcelable<WifiParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         Wifi(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -116,7 +115,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_GEO -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, GeoPointParcelable::class.java)?.let {
+      parcelable<GeoPointParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         GeoPoint(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -126,7 +125,7 @@ private fun Intent.toQuickieContentType(rawBytes: ByteArray?, rawValue: String?)
       }
     }
     Barcode.TYPE_CALENDAR_EVENT -> {
-      IntentCompat.getParcelableExtra(this, EXTRA_RESULT_PARCELABLE, CalendarEventParcelable::class.java)?.let {
+      parcelable<CalendarEventParcelable>(EXTRA_RESULT_PARCELABLE)?.let {
         CalendarEvent(
           rawBytes = rawBytes,
           rawValue = rawValue,
@@ -195,20 +194,10 @@ private fun CalendarDateTimeParcelable.toCalendarEvent() =
     utc = utc
   )
 
-inline fun <reified T : Parcelable> Intent.parcelable(
-  key: String
-): T? = runCatching {
-  when {
-    Build.VERSION.SDK_INT >= 33 -> getParcelableExtra(key, T::class.java)
-    else -> @Suppress("DEPRECATION") getParcelableExtra(key) as? T
-  }
+inline fun <reified T : Parcelable> Intent.parcelable(key: String): T? = runCatching {
+  IntentCompat.getParcelableExtra(this, key, T::class.java)
 }.getOrNull()
 
-inline fun <reified T : Parcelable> Intent.parcelableArrayList(
-  key: String
-): ArrayList<T>? = runCatching {
-  when {
-    Build.VERSION.SDK_INT >= 33 -> getParcelableArrayListExtra(key, T::class.java)
-    else -> @Suppress("DEPRECATION") getParcelableArrayListExtra(key)
-  }
+inline fun <reified T : Parcelable> Intent.parcelableArrayList(key: String): ArrayList<T>? = runCatching {
+  IntentCompat.getParcelableArrayListExtra(this, key, T::class.java)
 }.getOrNull()

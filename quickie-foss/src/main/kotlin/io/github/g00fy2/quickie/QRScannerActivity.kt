@@ -2,7 +2,6 @@ package io.github.g00fy2.quickie
 
 import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
-import android.app.Dialog
 import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -11,7 +10,6 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Size
 import android.view.HapticFeedbackConstants
-import android.view.KeyEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
@@ -39,7 +37,8 @@ import io.github.g00fy2.quickie.config.ParcelableScannerConfig
 import io.github.g00fy2.quickie.databinding.QuickieScannerActivityBinding
 import io.github.g00fy2.quickie.extensions.parcelable
 import io.github.g00fy2.quickie.extensions.parcelableArrayList
-import io.github.g00fy2.quickie.extensions.readQrCode
+import io.github.g00fy2.quickie.extensions.readQrCodeIntent
+import io.github.g00fy2.quickie.extensions.toIntent
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
 
@@ -77,7 +76,7 @@ internal class QRScannerActivity : AppCompatActivity() {
           .size(1500, 1500)
           .allowHardware(false)
           .target {
-            it.toBitmap().readQrCode(
+            it.toBitmap().readQrCodeIntent(
               barcodeFormats = barcodeFormats,
               onSuccess = ::onSuccess,
               onFailure = ::onFailure
@@ -110,20 +109,6 @@ internal class QRScannerActivity : AppCompatActivity() {
   private var showTorchToggle = false
   private var showCloseButton = false
   private var useFrontCamera = false
-  internal var errorDialog: Dialog? = null
-    set(value) {
-      field = value
-      value?.show()
-      value?.setOnKeyListener { dialog, keyCode, _ ->
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-          finish()
-          dialog.dismiss()
-          true
-        } else {
-          false
-        }
-      }
-    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
@@ -189,7 +174,7 @@ internal class QRScannerActivity : AppCompatActivity() {
               barcodeFormats = barcodeFormats,
               onSuccess = { barcode ->
                 it.clearAnalyzer()
-                onSuccess(barcode)
+                onSuccess(barcode.toIntent())
               },
               onFailure = { exception -> onFailure(exception) },
               onPassCompleted = { failureOccurred -> onPassCompleted(failureOccurred) }
@@ -237,7 +222,7 @@ internal class QRScannerActivity : AppCompatActivity() {
     }, ContextCompat.getMainExecutor(this))
   }
 
-  private fun onSuccess(result: String) {
+  private fun onSuccess(result: Intent) {
     binding.overlayView.isHighlighted = true
     if (hapticFeedback) {
       @Suppress("DEPRECATION")
@@ -246,9 +231,7 @@ internal class QRScannerActivity : AppCompatActivity() {
     }
     setResult(
       RESULT_OK,
-      Intent().apply {
-        putExtra(EXTRA_RESULT_VALUE, result)
-      }
+      result
     )
     finish()
   }

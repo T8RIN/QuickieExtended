@@ -13,8 +13,8 @@ import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_CONFIG
 import io.github.g00fy2.quickie.QRScannerActivity.Companion.RESULT_ERROR
 import io.github.g00fy2.quickie.QRScannerActivity.Companion.RESULT_MISSING_PERMISSION
 import io.github.g00fy2.quickie.config.ScannerConfig
+import io.github.g00fy2.quickie.config.toParcelableConfig
 import io.github.g00fy2.quickie.extensions.getRootException
-import io.github.g00fy2.quickie.extensions.toParcelableConfig
 import io.github.g00fy2.quickie.extensions.toQuickieContentType
 
 class ScanCustomCode : ActivityResultContract<ScannerConfig, QRResult>() {
