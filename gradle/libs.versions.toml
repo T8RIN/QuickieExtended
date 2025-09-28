@@ -1,26 +1,26 @@
 [versions]
-quickie = "1.14.0"
+quickie = "1.15.0"
 
-androidGradle = "8.8.1"
-kotlin = "2.1.10"
+androidGradle = "8.13.0"
+kotlin = "2.2.20"
 
-appcompat = "1.7.0"
-core = "1.15.0"
+appcompat = "1.7.1"
+core = "1.17.0"
 
-cameraX = "1.4.1"
+cameraX = "1.5.0"
 
-materialDesign = "1.12.0"
+materialDesign = "1.13.0"
 
-detekt = "1.23.6"
-dokka = "1.9.20"
+detekt = "1.23.8"
+dokka = "2.0.0"
 
-junit = "5.10.2"
+junit = "5.13.4"
 zxingAndroidEmbedded = "4.3.0"
-desugaring = "2.1.4"
+desugaring = "2.1.5"
 
 barcodeScanning = "17.3.0"
 barcodeScanningGms = "18.3.1"
-coil = "3.1.0"
+coil = "3.3.0"
 
 [libraries]
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
