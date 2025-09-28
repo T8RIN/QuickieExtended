@@ -108,7 +108,6 @@ internal class QRCodeAnalyzer(
           failureTimestamp = System.currentTimeMillis()
           onFailure(e)
         }
-        e.printStackTrace()
       } finally {
         reader.reset()
         imageProxy.close()
