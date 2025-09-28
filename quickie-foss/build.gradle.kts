@@ -4,6 +4,7 @@ plugins {
   alias(libs.plugins.android.library)
   alias(libs.plugins.kotlin.android)
   alias(libs.plugins.kotlin.parcelize)
+  alias(libs.plugins.kotlin.dokka)
   id("maven-publish")
 }
 
@@ -12,7 +13,7 @@ afterEvaluate {
     publications {
       create<MavenPublication>("mavenJava") {
         from(components["release"])
-        version = libs.versions.quickie.get()
+        version = "1.12.4"
         groupId = "com.github.t8rin"
         artifactId = "quickie-foss"
       }
