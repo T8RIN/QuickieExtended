@@ -1,7 +1,10 @@
+@file:Suppress("unused")
+
 package io.github.g00fy2.quickie
 
 import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
+import android.app.Dialog
 import android.content.ClipData
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -10,6 +13,7 @@ import android.os.Bundle
 import android.provider.MediaStore
 import android.util.Size
 import android.view.HapticFeedbackConstants
+import android.view.KeyEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
@@ -113,6 +117,20 @@ internal class QRScannerActivity : AppCompatActivity() {
   private var showTorchToggle = false
   private var showCloseButton = false
   private var useFrontCamera = false
+  internal var errorDialog: Dialog? = null
+    set(value) {
+      field = value
+      value?.show()
+      value?.setOnKeyListener { dialog, keyCode, _ ->
+        if (keyCode == KeyEvent.KEYCODE_BACK) {
+          finish()
+          dialog.dismiss()
+          true
+        } else {
+          false
+        }
+      }
+    }
 
   override fun onCreate(savedInstanceState: Bundle?) {
     super.onCreate(savedInstanceState)
