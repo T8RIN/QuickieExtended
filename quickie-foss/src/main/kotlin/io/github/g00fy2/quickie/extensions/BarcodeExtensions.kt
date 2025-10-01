@@ -73,14 +73,14 @@ internal fun Result.toParcelableContentType(): Parcelable? {
           EmailParcelable(address = email, body = "", subject = "", type = type)
         }.orEmpty(),
         nameParcelable = vcardMeta.name?.toPersonNameParcelable()?.copy(
-          pronunciation = parsed.pronunciation
+          pronunciation = parsed.pronunciation.orEmpty()
         ) ?: PersonNameParcelable(
           first = "",
           formattedName = parsed.names?.firstOrNull().orEmpty(),
           last = "",
           middle = "",
           prefix = "",
-          pronunciation = parsed.pronunciation,
+          pronunciation = parsed.pronunciation.orEmpty(),
           suffix = ""
         ),
         organization = parsed.org.orEmpty(),
@@ -197,7 +197,7 @@ internal fun Result.toParcelableContentType(): Parcelable? {
               prefix = first.structuredName?.prefixes?.joinToString(" ").orEmpty(),
               suffix = first.structuredName?.suffixes?.joinToString(" ").orEmpty(),
               formattedName = first.formattedName?.value.orEmpty(),
-              pronunciation = "" // ez-vcard не всегда даёт
+              pronunciation = ""
             ),
             organization = first.organizations.firstOrNull()?.values?.joinToString(" ").orEmpty(),
             phoneParcelables = first.telephoneNumbers.map { tel ->
