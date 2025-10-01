@@ -3,7 +3,7 @@ androidMinSdk = "23"
 androidTargetSdk = "36"
 androidCompileSdk = "36"
 
-quickie = "1.15.2"
+quickie = "1.15.3"
 
 androidGradle = "8.13.0"
 kotlin = "2.2.20"
@@ -25,6 +25,7 @@ desugaring = "2.1.5"
 barcodeScanning = "17.3.0"
 barcodeScanningGms = "18.3.1"
 coil = "3.3.0"
+ezVcard = "0.12.1"
 
 [libraries]
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
@@ -33,6 +34,7 @@ androidx-camera = { module = "androidx.camera:camera-camera2", version.ref = "ca
 androidx-cameraLifecycle = { module = "androidx.camera:camera-lifecycle", version.ref = "cameraX" }
 androidx-cameraPreview = { module = "androidx.camera:camera-view", version.ref = "cameraX" }
 androidx-core = { module = "androidx.core:core-ktx", version.ref = "core" }
+ez-vcard = { module = "com.googlecode.ez-vcard:ez-vcard", version.ref = "ezVcard" }
 zxing-android-embedded = { module = "com.journeyapps:zxing-android-embedded", version.ref = "zxingAndroidEmbedded" }
 
 google-materialDesign = { module = "com.google.android.material:material", version.ref = "materialDesign" }

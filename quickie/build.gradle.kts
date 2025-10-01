@@ -61,6 +61,8 @@ dependencies {
   testRuntimeOnly(libs.test.junitEngine)
 
   coreLibraryDesugaring(libs.desugaring)
+
+  api(libs.ez.vcard)
 }
 
 group = "io.github.g00fy2.quickie"

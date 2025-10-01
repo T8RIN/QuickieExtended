@@ -9,11 +9,18 @@ import com.google.zxing.client.result.AddressBookParsedResult
 import com.google.zxing.client.result.CalendarParsedResult
 import com.google.zxing.client.result.EmailAddressParsedResult
 import com.google.zxing.client.result.GeoParsedResult
+import com.google.zxing.client.result.ParsedResultType
 import com.google.zxing.client.result.ResultParser
 import com.google.zxing.client.result.SMSParsedResult
 import com.google.zxing.client.result.TelParsedResult
+import com.google.zxing.client.result.TextParsedResult
 import com.google.zxing.client.result.URIParsedResult
 import com.google.zxing.client.result.WifiParsedResult
+import ezvcard.Ezvcard
+import ezvcard.VCard
+import ezvcard.parameter.AddressType
+import ezvcard.parameter.EmailType
+import ezvcard.parameter.TelephoneType
 import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_BYTES
 import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_PARCELABLE
 import io.github.g00fy2.quickie.QRScannerActivity.Companion.EXTRA_RESULT_TYPE
@@ -46,9 +53,6 @@ data object DataType {
   }
 }
 
-/**
- * Попытаться максимально заполнить Parcelable-структуры, парся raw текст (vCard / MECARD / mailto / matmsg и т.д.)
- */
 internal fun Result.toParcelableContentType(): Parcelable? {
   val parsed = ResultParser.parseResult(this)
   val raw = this.text
@@ -159,6 +163,62 @@ internal fun Result.toParcelableContentType(): Parcelable? {
       summary = parsed.summary.orEmpty()
     )
 
+    is TextParsedResult -> {
+      runCatching {
+        val first = Ezvcard.parse(raw).first()
+        if (first != null) {
+          ContactInfoParcelable(
+            addressParcelables = first.addresses.map { adr ->
+              AddressParcelable(
+                addressLines = adr.streetAddresses + adr.localities + adr.regions + adr.postalCodes + adr.countries,
+                type = when {
+                  adr.types.contains(AddressType.HOME) -> DataType.TYPE_HOME
+                  adr.types.contains(AddressType.WORK) -> DataType.TYPE_WORK
+                  else -> DataType.TYPE_UNKNOWN
+                }
+              )
+            },
+            emailParcelables = first.emails.map { em ->
+              EmailParcelable(
+                address = em.value.orEmpty(),
+                body = "",
+                subject = "",
+                type = when {
+                  em.types.contains(EmailType.HOME) -> DataType.TYPE_HOME
+                  em.types.contains(EmailType.WORK) -> DataType.TYPE_WORK
+                  else -> DataType.TYPE_UNKNOWN
+                }
+              )
+            },
+            nameParcelable = PersonNameParcelable(
+              first = first.structuredName?.given.orEmpty(),
+              last = first.structuredName?.family.orEmpty(),
+              middle = first.structuredName?.additionalNames?.joinToString(" ").orEmpty(),
+              prefix = first.structuredName?.prefixes?.joinToString(" ").orEmpty(),
+              suffix = first.structuredName?.suffixes?.joinToString(" ").orEmpty(),
+              formattedName = first.formattedName?.value.orEmpty(),
+              pronunciation = "" // ez-vcard не всегда даёт
+            ),
+            organization = first.organizations.firstOrNull()?.values?.joinToString(" ").orEmpty(),
+            phoneParcelables = first.telephoneNumbers.map { tel ->
+              PhoneParcelable(
+                number = tel.text.orEmpty(),
+                type = when {
+                  tel.types.contains(TelephoneType.HOME) -> DataType.TYPE_HOME
+                  tel.types.contains(TelephoneType.WORK) -> DataType.TYPE_WORK
+                  tel.types.contains(TelephoneType.FAX) -> DataType.TYPE_FAX
+                  tel.types.contains(TelephoneType.CELL) -> DataType.TYPE_MOBILE
+                  else -> DataType.TYPE_UNKNOWN
+                }
+              )
+            },
+            title = first.titles.firstOrNull()?.value.orEmpty(),
+            urls = first.urls.mapNotNull { it.value }
+          )
+        } else null
+      }.getOrNull()
+    }
+
     else -> null
   }
 }
@@ -166,10 +226,15 @@ internal fun Result.toParcelableContentType(): Parcelable? {
 internal fun Result.toIntent(): Intent {
   val parsed = ResultParser.parseResult(this)
   return Intent().apply {
+    val parcelable = toParcelableContentType()
+
     putExtra(EXTRA_RESULT_BYTES, rawBytes)
     putExtra(EXTRA_RESULT_VALUE, text)
-    putExtra(EXTRA_RESULT_TYPE, parsed.type.ordinal)
-    putExtra(EXTRA_RESULT_PARCELABLE, toParcelableContentType())
+    putExtra(
+      EXTRA_RESULT_TYPE,
+      if (parcelable is ContactInfoParcelable) ParsedResultType.ADDRESSBOOK.ordinal else parsed.type.ordinal
+    )
+    putExtra(EXTRA_RESULT_PARCELABLE, parcelable)
   }
 }
 
@@ -203,14 +268,18 @@ private data class VCardName(
 private fun parseVCardOrMecard(raw: String?): VCardMeta {
   if (raw == null) return VCardMeta()
 
-  // try vCard block
+  // пробуем через ez-vcard
+  runCatching { parseVCardWithEz(raw) }
+    .getOrNull()
+    ?.takeIf { it.phones.isNotEmpty() || it.emails.isNotEmpty() || it.addresses.isNotEmpty() || it.name != null }
+    ?.let { return it }
+
+  // если ez-vcard ничего не нашёл — fallback на твой regEx-парсер и MECARD
   val vcardBlock = Regex("BEGIN:VCARD[\\s\\S]*?END:VCARD", RegexOption.IGNORE_CASE).find(raw)?.value
   if (vcardBlock != null) return parseVCardBlock(vcardBlock)
 
-  // try MECARD form (MECARD:N:Lastname,Firstname;TEL:...;EMAIL:...;;)
   if (raw.startsWith("MECARD:", ignoreCase = true)) return parseMecard(raw)
 
-  // fallback: nothing found
   return VCardMeta()
 }
 
@@ -316,7 +385,6 @@ private fun parseMecard(raw: String): VCardMeta {
   return VCardMeta(phones = phones, emails = emails, addresses = addrs, name = name)
 }
 
-/** простая эвристика извлечения типа из атрибутной строки vCard (TYPE=WORK, HOME, CELL, FAX и пр.) */
 private fun typeFromAttr(attr: String?): Int {
   if (attr.isNullOrBlank()) return DataType.TYPE_UNKNOWN
   // удалим "TYPE=" если присутствует и разберём все токены
@@ -335,7 +403,6 @@ private fun typeFromAttr(attr: String?): Int {
   return DataType.TYPE_UNKNOWN
 }
 
-/** Нормализуем телефон для сравнения (убираем пробелы, скобки, + и т.д.) */
 private fun normalizePhone(phone: String?): String {
   if (phone.isNullOrBlank()) return ""
   return phone.replace(Regex("[^0-9]"), "")
@@ -343,10 +410,8 @@ private fun normalizePhone(phone: String?): String {
 
 /** Нормализация произвольного адреса/емейла для поиска совпадений */
 private fun normalizeForMatch(s: String?): String {
-  return s?.lowercase(Locale.ROOT)?.replace(Regex("\\s+"), " ")?.trim().orEmpty()
+  return s?.lowercase()?.replace(Regex("\\s+"), " ")?.trim().orEmpty()
 }
-
-/* ---------------------- mailto / MATMSG парсинг ---------------------- */
 
 private data class MailToMeta(val to: String?, val subject: String?, val body: String?)
 
@@ -412,5 +477,67 @@ private fun Long?.toParcelableCalendarEvent(): CalendarDateTimeParcelable {
     seconds = cal.get(Calendar.SECOND),
     year = cal.get(Calendar.YEAR),
     utc = cal.timeZone.rawOffset == 0
+  )
+}
+
+private fun parseVCardWithEz(raw: String?): VCardMeta {
+  if (raw.isNullOrBlank()) return VCardMeta()
+
+  val vcards: List<VCard> = Ezvcard.parse(raw).all()
+  if (vcards.isEmpty()) return VCardMeta()
+  val vcard = vcards.first()
+
+  val phones = vcard.telephoneNumbers.map {
+    TypedValue(
+      value = it.text.orEmpty(),
+      type = when {
+        it.types.contains(TelephoneType.CELL) -> DataType.TYPE_MOBILE
+        it.types.contains(TelephoneType.FAX) -> DataType.TYPE_FAX
+        it.types.contains(TelephoneType.HOME) -> DataType.TYPE_HOME
+        it.types.contains(TelephoneType.WORK) -> DataType.TYPE_WORK
+        else -> DataType.TYPE_UNKNOWN
+      }
+    )
+  }
+
+  val emails = vcard.emails.map {
+    TypedValue(
+      value = it.value.orEmpty(),
+      type = when {
+        it.types.contains(EmailType.HOME) -> DataType.TYPE_HOME
+        it.types.contains(EmailType.WORK) -> DataType.TYPE_WORK
+        else -> DataType.TYPE_UNKNOWN
+      }
+    )
+  }
+
+  val addrs = vcard.addresses.map {
+    TypedValue(
+      value = it.streetAddress.orEmpty() +
+        listOfNotNull(it.locality, it.region, it.postalCode, it.country).joinToString(", "),
+      type = when {
+        it.types.contains(AddressType.HOME) -> DataType.TYPE_HOME
+        it.types.contains(AddressType.WORK) -> DataType.TYPE_WORK
+        else -> DataType.TYPE_UNKNOWN
+      }
+    )
+  }
+
+  val name = vcard.structuredName?.let { n ->
+    VCardName(
+      first = n.given,
+      last = n.family,
+      middle = n.additionalNames.joinToString(" "),
+      prefix = n.prefixes.joinToString(" "),
+      suffix = n.suffixes.joinToString(" "),
+      formatted = vcard.formattedName?.value
+    )
+  }
+
+  return VCardMeta(
+    phones = phones,
+    emails = emails,
+    addresses = addrs,
+    name = name
   )
 }
