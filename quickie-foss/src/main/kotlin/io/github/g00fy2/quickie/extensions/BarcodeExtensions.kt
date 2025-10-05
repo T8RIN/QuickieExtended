@@ -73,14 +73,14 @@ internal fun Result.toParcelableContentType(): Parcelable? {
           EmailParcelable(address = email, body = "", subject = "", type = type)
         }.orEmpty(),
         nameParcelable = vcardMeta.name?.toPersonNameParcelable()?.copy(
-          pronunciation = parsed.pronunciation.orEmpty()
+          pronunciation = parsed.pronunciation.orEmpty().ifBlank { vcardMeta.pronunciation }
         ) ?: PersonNameParcelable(
           first = "",
           formattedName = parsed.names?.firstOrNull().orEmpty(),
           last = "",
           middle = "",
           prefix = "",
-          pronunciation = parsed.pronunciation.orEmpty(),
+          pronunciation = parsed.pronunciation.orEmpty().ifBlank { vcardMeta.pronunciation },
           suffix = ""
         ),
         organization = parsed.org.orEmpty(),
@@ -243,7 +243,8 @@ private data class VCardMeta(
   val phones: List<TypedValue> = emptyList(),
   val emails: List<TypedValue> = emptyList(),
   val addresses: List<TypedValue> = emptyList(),
-  val name: VCardName? = null
+  val name: VCardName? = null,
+  val pronunciation: String
 )
 
 private data class VCardName(
@@ -266,12 +267,12 @@ private data class VCardName(
 }
 
 private fun parseVCardOrMecard(raw: String?): VCardMeta {
-  if (raw == null) return VCardMeta()
+  if (raw == null) return VCardMeta(pronunciation = "")
 
   // пробуем через ez-vcard
   runCatching { parseVCardWithEz(raw) }
     .getOrNull()
-    ?.takeIf { it.phones.isNotEmpty() || it.emails.isNotEmpty() || it.addresses.isNotEmpty() || it.name != null }
+    ?.takeIf { it.phones.isNotEmpty() || it.emails.isNotEmpty() || it.addresses.isNotEmpty() || it.name != null || it.pronunciation.isNotBlank() }
     ?.let { return it }
 
   // если ez-vcard ничего не нашёл — fallback на твой regEx-парсер и MECARD
@@ -280,7 +281,7 @@ private fun parseVCardOrMecard(raw: String?): VCardMeta {
 
   if (raw.startsWith("MECARD:", ignoreCase = true)) return parseMecard(raw)
 
-  return VCardMeta()
+  return VCardMeta(pronunciation = "")
 }
 
 private fun parseVCardBlock(block: String): VCardMeta {
@@ -349,7 +350,7 @@ private fun parseVCardBlock(block: String): VCardMeta {
     }
   }
 
-  return VCardMeta(phones = phones, emails = emails, addresses = addrs, name = name)
+  return VCardMeta(phones = phones, emails = emails, addresses = addrs, name = name, pronunciation = "")
 }
 
 private fun parseMecard(raw: String): VCardMeta {
@@ -382,7 +383,13 @@ private fun parseMecard(raw: String): VCardMeta {
     }
   }
 
-  return VCardMeta(phones = phones, emails = emails, addresses = addrs, name = name)
+  return VCardMeta(
+    phones = phones,
+    emails = emails,
+    addresses = addrs,
+    name = name,
+    pronunciation = ""
+  )
 }
 
 private fun typeFromAttr(attr: String?): Int {
@@ -481,10 +488,10 @@ private fun Long?.toParcelableCalendarEvent(): CalendarDateTimeParcelable {
 }
 
 private fun parseVCardWithEz(raw: String?): VCardMeta {
-  if (raw.isNullOrBlank()) return VCardMeta()
+  if (raw.isNullOrBlank()) return VCardMeta(pronunciation = "")
 
   val vcards: List<VCard> = Ezvcard.parse(raw).all()
-  if (vcards.isEmpty()) return VCardMeta()
+  if (vcards.isEmpty()) return VCardMeta(pronunciation = "")
   val vcard = vcards.first()
 
   val phones = vcard.telephoneNumbers.map {
@@ -538,6 +545,15 @@ private fun parseVCardWithEz(raw: String?): VCardMeta {
     phones = phones,
     emails = emails,
     addresses = addrs,
-    name = name
+    name = name,
+    pronunciation = vcard.getPhoneticName()
   )
+}
+
+private fun VCard.getPhoneticName(): String {
+  return sequenceOf(
+    getExtendedProperty("X-PHONETIC-FIRST-NAME")?.value,
+    getExtendedProperty("X-PHONETIC-MIDDLE-NAME")?.value,
+    getExtendedProperty("X-PHONETIC-LAST-NAME")?.value
+  ).firstOrNull { !it.isNullOrBlank() }.orEmpty()
 }
