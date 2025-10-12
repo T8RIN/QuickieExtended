@@ -63,7 +63,7 @@ internal fun Bitmap.readQrCodeIntent(
         ),
         null
       )
-    }
+    }.run { QrProcessor.process(this) }
 
     barcodeScanner?.let { scanner ->
       scanner.process(InputImage.fromBitmap(targetBitmap, 0))
@@ -76,5 +76,21 @@ internal fun Bitmap.readQrCodeIntent(
           onFailure(it)
         }
     }
+  }
+}
+
+fun interface QrProcessor {
+  fun process(bitmap: Bitmap): Bitmap
+
+  companion object : QrProcessor {
+    private var processImpl: (Bitmap) -> Bitmap = { it }
+
+    fun setProcessor(
+      processor: (Bitmap) -> Bitmap
+    ) {
+      processImpl = processor
+    }
+
+    override fun process(bitmap: Bitmap): Bitmap = processImpl(bitmap)
   }
 }
