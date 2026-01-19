@@ -3,7 +3,7 @@ androidMinSdk = "23"
 androidTargetSdk = "36"
 androidCompileSdk = "36"
 
-quickie = "1.15.7"
+quickie = "1.16.0"
 
 androidGradle = "8.13.2"
 kotlin = "2.3.0"
