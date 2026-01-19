@@ -6,6 +6,7 @@ import android.Manifest.permission.CAMERA
 import android.annotation.SuppressLint
 import android.app.Dialog
 import android.content.ClipData
+import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.net.Uri
@@ -17,6 +18,7 @@ import android.view.KeyEvent
 import android.view.ScaleGestureDetector
 import android.view.View
 import android.view.WindowManager
+import android.view.accessibility.AccessibilityManager
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.view.ContextThemeWrapper
@@ -29,6 +31,7 @@ import androidx.camera.core.resolutionselector.ResolutionStrategy
 import androidx.camera.lifecycle.ProcessCameraProvider
 import androidx.core.content.ContextCompat
 import androidx.core.content.IntentCompat
+import androidx.core.content.getSystemService
 import androidx.core.view.ViewCompat
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
@@ -246,9 +249,7 @@ internal class QRScannerActivity : AppCompatActivity() {
   private fun onSuccess(result: Intent) {
     binding.overlayView.isHighlighted = true
     if (hapticFeedback) {
-      @Suppress("DEPRECATION")
-      val flags = HapticFeedbackConstants.FLAG_IGNORE_VIEW_SETTING or HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING
-      binding.overlayView.performHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP, flags)
+      binding.overlayView.reallyPerformHapticFeedback(HapticFeedbackConstants.KEYBOARD_TAP)
     }
     setResult(
       RESULT_OK,
@@ -256,6 +257,20 @@ internal class QRScannerActivity : AppCompatActivity() {
     )
     finish()
   }
+
+  @Suppress("DEPRECATION")
+  private fun View.reallyPerformHapticFeedback(feedbackConstant: Int) {
+    runCatching {
+      if (context.isTouchExplorationEnabled()) return
+
+      isHapticFeedbackEnabled = true
+
+      performHapticFeedback(feedbackConstant, HapticFeedbackConstants.FLAG_IGNORE_GLOBAL_SETTING)
+    }
+  }
+
+  private fun Context.isTouchExplorationEnabled(): Boolean =
+    getSystemService<AccessibilityManager>()?.isTouchExplorationEnabled == true
 
   private fun onFailure(exception: Exception) {
     setResult(RESULT_ERROR, Intent().putExtra(EXTRA_RESULT_EXCEPTION, exception))
