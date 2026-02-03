@@ -10,10 +10,10 @@ import androidx.core.graphics.createBitmap
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
 import com.google.zxing.LuminanceSource
-import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.RGBLuminanceSource
 import com.google.zxing.common.HybridBinarizer
+import io.github.g00fy2.quickie.MultiFormatReaderFixed
 import io.github.g00fy2.quickie.config.BarcodeFormat
 import io.github.g00fy2.quickie.content.QRContent
 import kotlinx.coroutines.CoroutineScope
@@ -38,10 +38,10 @@ fun Bitmap.readQrCodeIntent(
   onFailure: (Throwable) -> Unit
 ) {
   CoroutineScope(Dispatchers.Default).launch {
-    val reader = MultiFormatReader().apply {
+    val reader = MultiFormatReaderFixed().apply {
       setHints(
-        mapOf(
-          DecodeHintType.CHARACTER_SET to Charsets.UTF_8,
+        mutableMapOf(
+          DecodeHintType.CHARACTER_SET to "utf-8",
           DecodeHintType.TRY_HARDER to true,
           DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.toList().mapNotNull { BarcodeFormat.entries[it].value }
         )

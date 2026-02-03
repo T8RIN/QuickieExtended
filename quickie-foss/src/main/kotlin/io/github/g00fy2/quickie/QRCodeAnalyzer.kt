@@ -7,7 +7,6 @@ import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
 import com.google.zxing.BinaryBitmap
 import com.google.zxing.DecodeHintType
-import com.google.zxing.MultiFormatReader
 import com.google.zxing.NotFoundException
 import com.google.zxing.PlanarYUVLuminanceSource
 import com.google.zxing.Result
@@ -45,8 +44,8 @@ internal class QRCodeAnalyzer(
 
     reader.apply {
       setHints(
-        mapOf(
-          DecodeHintType.CHARACTER_SET to Charsets.UTF_8,
+        mutableMapOf(
+          DecodeHintType.CHARACTER_SET to "utf-8",
           DecodeHintType.TRY_HARDER to true,
           DecodeHintType.POSSIBLE_FORMATS to barcodeFormats.toList().mapNotNull { BarcodeFormat.entries[it].value }
         )
@@ -180,7 +179,7 @@ internal class QRCodeAnalyzer(
 
 
   companion object {
-    private val reader = MultiFormatReader()
+    private val reader = MultiFormatReaderFixed()
   }
 }
 

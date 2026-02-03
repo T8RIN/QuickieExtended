@@ -53,7 +53,7 @@ dependencies {
   implementation(libs.androidx.camera)
   implementation(libs.androidx.cameraLifecycle)
   implementation(libs.androidx.cameraPreview)
-  implementation(libs.zxing.android.embedded)
+  implementation(libs.zxing.core)
 
   testImplementation(libs.test.junitApi)
   testRuntimeOnly(libs.test.junitEngine)
