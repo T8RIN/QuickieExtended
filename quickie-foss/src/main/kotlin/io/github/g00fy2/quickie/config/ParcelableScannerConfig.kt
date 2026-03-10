@@ -14,6 +14,8 @@ internal class ParcelableScannerConfig(
   val useFrontCamera: Boolean,
   val showCloseButton: Boolean,
   val keepScreenOn: Boolean,
+  val buttonsTint: Int?,
+  val buttonsBackground: Int?,
 ) : Parcelable
 
 internal fun ScannerConfig.toParcelableConfig() =
@@ -27,4 +29,6 @@ internal fun ScannerConfig.toParcelableConfig() =
     useFrontCamera = useFrontCamera,
     showCloseButton = showCloseButton,
     keepScreenOn = keepScreenOn,
+    buttonsTint = buttonsTint,
+    buttonsBackground = buttonsBackground,
   )

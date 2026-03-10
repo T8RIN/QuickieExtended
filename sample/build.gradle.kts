@@ -57,7 +57,7 @@ android {
 }
 
 dependencies {
-  implementation(project(":quickie-foss"))
+  implementation(project(":quickie"))
 
   coreLibraryDesugaring(libs.desugaring)
   implementation(libs.google.materialDesign)

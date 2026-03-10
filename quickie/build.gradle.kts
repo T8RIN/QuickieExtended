@@ -61,6 +61,7 @@ dependencies {
   testRuntimeOnly(libs.test.junitEngine)
 
   coreLibraryDesugaring(libs.desugaring)
+  implementation(libs.material)
 
   api(libs.ez.vcard)
 }

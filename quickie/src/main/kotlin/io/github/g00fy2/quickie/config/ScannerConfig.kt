@@ -17,6 +17,8 @@ class ScannerConfig internal constructor(
   internal val useFrontCamera: Boolean,
   internal val showCloseButton: Boolean,
   internal val keepScreenOn: Boolean,
+  internal val buttonsTint: Int?,
+  internal val buttonsBackground: Int?,
 ) {
 
   class Builder {
@@ -29,6 +31,8 @@ class ScannerConfig internal constructor(
     private var useFrontCamera: Boolean = false
     private var showCloseButton: Boolean = false
     private var keepScreenOn: Boolean = false
+    private var buttonsTint: Int? = null
+    private var buttonsBackground: Int? = null
 
     /**
      * Set a list of interested barcode formats. List must not be empty.
@@ -78,6 +82,14 @@ class ScannerConfig internal constructor(
      */
     fun setKeepScreenOn(enable: Boolean): Builder = apply { keepScreenOn = enable }
 
+    fun setButtonColors(
+      tint: Int?,
+      container: Int?
+    ) = apply {
+      buttonsTint = tint
+      buttonsBackground = container
+    }
+
     /**
      * Build the BarcodeConfig required by the ScanBarcode ActivityResultContract.
      */
@@ -92,6 +104,8 @@ class ScannerConfig internal constructor(
         useFrontCamera = useFrontCamera,
         showCloseButton = showCloseButton,
         keepScreenOn = keepScreenOn,
+        buttonsTint = buttonsTint,
+        buttonsBackground = buttonsBackground,
       )
   }
 

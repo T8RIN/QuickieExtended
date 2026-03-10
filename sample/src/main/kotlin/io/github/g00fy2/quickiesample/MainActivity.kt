@@ -2,11 +2,15 @@ package io.github.g00fy2.quickiesample
 
 import android.content.ActivityNotFoundException
 import android.content.Intent
+import android.graphics.Color
 import android.net.Uri
 import android.os.Bundle
 import android.widget.ArrayAdapter
 import android.widget.TextView
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.graphics.blue
+import androidx.core.graphics.green
+import androidx.core.graphics.red
 import com.google.android.material.snackbar.Snackbar
 import io.github.g00fy2.quickie.QRResult
 import io.github.g00fy2.quickie.QRResult.QRError
@@ -50,6 +54,12 @@ class MainActivity : AppCompatActivity() {
           setHorizontalFrameRatio(2.2f) // set the horizontal overlay ratio (default is 1 / square frame)
           setUseFrontCamera(false) // use the front camera
           setKeepScreenOn(true) // keep the device's screen turned on
+          setButtonColors(
+            tint = getColor(android.R.color.system_primary_fixed),
+            container = getColor(android.R.color.system_primary_fixed).let { background ->
+              Color.valueOf(background.red / 255f, background.green / 255f, background.blue / 255f, 0.3f).toArgb()
+            },
+          )
         }
       )
     }

@@ -19,7 +19,7 @@ import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
-import androidx.core.graphics.drawable.DrawableCompat
+import com.google.android.material.button.MaterialButton
 import io.github.g00fy2.quickie.databinding.QuickieOverlayViewBinding
 import kotlin.math.min
 import kotlin.math.roundToInt
@@ -33,7 +33,8 @@ internal class QROverlayView @JvmOverloads constructor(
 
   private val binding = QuickieOverlayViewBinding.inflate(LayoutInflater.from(context), this)
   private val grayColor = ContextCompat.getColor(context, R.color.quickie_gray)
-  private val accentColor = getAccentColor()
+  private var tint: Int? = null
+  private var background: Int? = null
   private val backgroundColor = ColorUtils.setAlphaComponent(Color.BLACK, BACKGROUND_ALPHA.roundToInt())
   private val alphaPaint = Paint().apply { alpha = BACKGROUND_ALPHA.roundToInt() }
   private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -60,7 +61,7 @@ internal class QROverlayView @JvmOverloads constructor(
     set(value) {
       if (field != value) {
         field = value
-        binding.progressView.visibility = if (value) View.VISIBLE else View.GONE
+        binding.progressView.visibility = if (value) VISIBLE else GONE
       }
     }
 
@@ -79,7 +80,9 @@ internal class QROverlayView @JvmOverloads constructor(
 
   @Suppress("UnsafeCallOnNullableType")
   override fun onDraw(canvas: Canvas) {
-    strokePaint.color = if (isHighlighted) accentColor else grayColor
+    strokePaint.color = Color.valueOf(if (isHighlighted) (tint ?: grayColor) else (background ?: grayColor)).let {
+      Color.valueOf(it.red(), it.green(), it.blue(), 1f).toArgb()
+    }
     maskCanvas!!.drawColor(backgroundColor)
     maskCanvas!!.drawRoundRect(outerFrame, outerRadius, outerRadius, strokePaint)
     maskCanvas!!.drawRoundRect(innerFrame, innerRadius, innerRadius, transparentPaint)
@@ -120,21 +123,53 @@ internal class QROverlayView @JvmOverloads constructor(
   }
 
   fun setCloseVisibilityAndOnClick(visible: Boolean, action: () -> Unit = {}) {
-    binding.closeImageView.visibility = if (visible) View.VISIBLE else View.GONE
+    binding.closeImageView.visibility = if (visible) VISIBLE else GONE
     binding.closeImageView.setOnClickListener { action() }
-    if (visible) binding.closeImageView.setTintAndStateAwareBackground()
   }
 
   fun setTorchVisibilityAndOnClick(visible: Boolean, action: (Boolean) -> Unit = {}) {
-    binding.torchImageView.visibility = if (visible) View.VISIBLE else View.GONE
+    binding.torchImageView.visibility = if (visible) VISIBLE else GONE
     binding.torchImageView.setOnClickListener { action(!it.isSelected) }
-    if (visible) binding.torchImageView.setTintAndStateAwareBackground()
   }
 
   fun setGalleryVisibilityAndOnClick(visible: Boolean, action: (Boolean) -> Unit = {}) {
-    binding.galleryImageView.visibility = if (visible) View.VISIBLE else View.GONE
+    binding.galleryImageView.visibility = if (visible) VISIBLE else GONE
     binding.galleryImageView.setOnClickListener { action(!it.isSelected) }
-    if (visible) binding.galleryImageView.setTintAndStateAwareBackground()
+  }
+
+  fun setButtonColors(
+    tint: Int?,
+    background: Int?
+  ) {
+    this.tint = tint
+    this.background = background
+
+    tint?.let {
+      binding.progressBar.indeterminateTintList = ColorStateList.valueOf(tint)
+      binding.loadingText.setTextColor(tint)
+    }
+
+    listOf(
+      binding.closeImageView,
+      binding.galleryImageView,
+      binding.torchImageView
+    ).forEach {
+      it.setColors(tint, background)
+    }
+  }
+
+  private fun MaterialButton.setColors(
+    tint: Int?,
+    background: Int?
+  ) {
+    tint?.let {
+      setIconTint(
+        ColorStateList.valueOf(tint)
+      )
+    }
+    background?.let {
+      setBackgroundColor(background)
+    }
   }
 
   fun setTorchState(on: Boolean) {
@@ -170,17 +205,7 @@ internal class QROverlayView @JvmOverloads constructor(
     binding.titleTextView.updateTopMargin(titleCenter)
     // hide title text if not enough vertical space
     binding.titleTextView.visibility =
-      if (topInsetsToOuterFrame < binding.titleTextView.height) View.INVISIBLE else View.VISIBLE
-  }
-
-  private fun getAccentColor(): Int {
-    return TypedValue().let {
-      if (context.theme.resolveAttribute(android.R.attr.colorAccent, it, true)) {
-        it.data
-      } else {
-        ContextCompat.getColor(context, R.color.quickie_accent_fallback)
-      }
-    }
+      if (topInsetsToOuterFrame < binding.titleTextView.height) INVISIBLE else VISIBLE
   }
 
   private fun View.updateTopMargin(topPx: Int) {
@@ -198,24 +223,6 @@ internal class QROverlayView @JvmOverloads constructor(
       setBounds(0, 0, minimumWidth, minimumHeight)
     }
     return this
-  }
-
-  private fun View.setTintAndStateAwareBackground() {
-    background?.let { drawable ->
-      val wrappedDrawable = DrawableCompat.wrap(drawable)
-
-      val states = arrayOf(
-        intArrayOf(android.R.attr.state_pressed, android.R.attr.state_selected),
-        intArrayOf(android.R.attr.state_pressed, -android.R.attr.state_selected),
-        intArrayOf(-android.R.attr.state_pressed, android.R.attr.state_selected),
-        intArrayOf()
-      )
-      val stateColors = intArrayOf(grayColor, accentColor, accentColor, grayColor)
-      val colorStateList = ColorStateList(states, stateColors).withAlpha(BUTTON_BACKGROUND_ALPHA.roundToInt())
-
-      DrawableCompat.setTintList(wrappedDrawable, colorStateList)
-      background = wrappedDrawable
-    }
   }
 
   private fun Float.toPx() =

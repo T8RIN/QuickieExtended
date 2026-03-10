@@ -263,7 +263,8 @@ internal class QRScannerActivity : AppCompatActivity() {
   private fun setupEdgeToEdgeUI() {
     WindowCompat.setDecorFitsSystemWindows(window, false)
     ViewCompat.setOnApplyWindowInsetsListener(binding.overlayView) { v, insets ->
-      insets.getInsets(WindowInsetsCompat.Type.systemBars()).let { v.setPadding(it.left, it.top, it.right, it.bottom) }
+      insets.getInsets(WindowInsetsCompat.Type.systemBars() or WindowInsetsCompat.Type.displayCutout())
+        .let { v.setPadding(it.left, it.top, it.right, it.bottom) }
       WindowInsetsCompat.CONSUMED
     }
   }
@@ -278,6 +279,10 @@ internal class QRScannerActivity : AppCompatActivity() {
       showTorchToggle = it.showTorchToggle
       useFrontCamera = it.useFrontCamera
       showCloseButton = it.showCloseButton
+      binding.overlayView.setButtonColors(
+        tint = it.buttonsTint,
+        background = it.buttonsBackground
+      )
 
       if (it.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
     }

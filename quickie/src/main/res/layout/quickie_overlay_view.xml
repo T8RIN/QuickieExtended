@@ -26,31 +26,59 @@
       app:drawableTopCompat="@drawable/quickie_ic_qrcode"
       />
 
-  <androidx.appcompat.widget.AppCompatImageView
+  <com.google.android.material.button.MaterialButton
       android:id="@+id/close_image_view"
+      style="@style/Widget.Material3.Button.IconButton.Filled"
       android:layout_width="48dp"
       android:layout_height="48dp"
       android:layout_gravity="top|start"
       android:layout_margin="12dp"
-      android:background="@drawable/quickie_bg_round"
-      android:padding="12dp"
+      android:insetLeft="0dp"
+      android:insetTop="0dp"
+      android:insetRight="0dp"
+      android:insetBottom="0dp"
       android:visibility="gone"
-      app:srcCompat="@drawable/quickie_ic_close"
-      tools:visibility="visible"
-      />
+      app:icon="@drawable/quickie_ic_close"
+      app:iconGravity="textStart"
+      app:iconPadding="0dp"
+      app:iconSize="24dp"
+      tools:visibility="visible"/>
 
-  <androidx.appcompat.widget.AppCompatImageView
+  <com.google.android.material.button.MaterialButton
       android:id="@+id/torch_image_view"
+      style="@style/Widget.Material3.Button.IconButton.Filled"
       android:layout_width="48dp"
       android:layout_height="48dp"
       android:layout_gravity="top|end"
       android:layout_margin="12dp"
-      android:background="@drawable/quickie_bg_round"
-      android:padding="12dp"
+      android:insetLeft="0dp"
+      android:insetTop="0dp"
+      android:insetRight="0dp"
+      android:insetBottom="0dp"
       android:visibility="gone"
-      app:srcCompat="@drawable/quickie_ic_torch"
-      tools:visibility="visible"
-      />
+      app:icon="@drawable/quickie_ic_torch"
+      app:iconGravity="textStart"
+      app:iconPadding="0dp"
+      app:iconSize="24dp"
+      tools:visibility="visible"/>
+
+  <com.google.android.material.button.MaterialButton
+      android:id="@+id/gallery_image_view"
+      style="@style/Widget.Material3.Button.IconButton.Filled"
+      android:layout_width="48dp"
+      android:layout_height="48dp"
+      android:layout_gravity="bottom|start"
+      android:layout_margin="12dp"
+      android:insetLeft="0dp"
+      android:insetTop="0dp"
+      android:insetRight="0dp"
+      android:insetBottom="0dp"
+      android:visibility="gone"
+      app:icon="@drawable/quickie_ic_image"
+      app:iconGravity="textStart"
+      app:iconPadding="0dp"
+      app:iconSize="24dp"
+      tools:visibility="visible"/>
 
   <LinearLayout
       android:id="@+id/progress_view"
@@ -63,6 +91,7 @@
       >
 
     <ProgressBar
+        android:id="@+id/progress_bar"
         android:layout_width="48dp"
         android:layout_height="48dp"
         android:layout_gravity="center"
@@ -72,6 +101,7 @@
         />
 
     <androidx.appcompat.widget.AppCompatTextView
+        android:id="@+id/loading_text"
         style="@style/TextAppearance.AppCompat.Subhead"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -86,18 +116,5 @@
         android:textColor="@color/quickie_gray"
         />
   </LinearLayout>
-
-  <androidx.appcompat.widget.AppCompatImageView
-      android:id="@+id/gallery_image_view"
-      android:layout_width="48dp"
-      android:layout_height="48dp"
-      android:layout_gravity="bottom|start"
-      android:layout_margin="12dp"
-      android:background="@drawable/quickie_bg_round"
-      android:padding="12dp"
-      android:visibility="gone"
-      app:srcCompat="@drawable/quickie_ic_image"
-      tools:visibility="visible"
-      />
 
 </merge>

@@ -3,7 +3,7 @@ androidMinSdk = "23"
 androidTargetSdk = "36"
 androidCompileSdk = "36"
 
-quickie = "1.17.0"
+quickie = "1.18.0"
 
 androidGradle = "8.13.2"
 kotlin = "2.3.0"
@@ -26,8 +26,10 @@ barcodeScanningGms = "18.3.1"
 coil = "3.3.0"
 ezVcard = "0.12.1"
 zxingCore = "3.5.4"
+material = "1.14.0-alpha09"
 
 [libraries]
+material = { group = "com.google.android.material", name = "material", version.ref = "material" }
 zxing-core = { module = "com.google.zxing:core", version.ref = "zxingCore" }
 coil = { module = "io.coil-kt.coil3:coil", version.ref = "coil" }
 androidx-appcompat = { module = "androidx.appcompat:appcompat", version.ref = "appcompat" }
