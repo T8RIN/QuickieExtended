@@ -54,11 +54,15 @@ class MainActivity : AppCompatActivity() {
           setHorizontalFrameRatio(2.2f) // set the horizontal overlay ratio (default is 1 / square frame)
           setUseFrontCamera(false) // use the front camera
           setKeepScreenOn(true) // keep the device's screen turned on
-          setButtonColors(
-            tint = getColor(android.R.color.system_primary_fixed),
-            container = getColor(android.R.color.system_primary_fixed).let { background ->
-              Color.valueOf(background.red / 255f, background.green / 255f, background.blue / 255f, 0.3f).toArgb()
+          setColors(
+            buttonTint = getColor(android.R.color.system_on_primary_fixed),
+            buttonBackground = getColor(android.R.color.system_primary_fixed).let { background ->
+              Color.valueOf(background.red / 255f, background.green / 255f, background.blue / 255f, 0.6f).toArgb()
             },
+            frameHighlighted = getColor(android.R.color.system_tertiary_container_light),
+            frame = getColor(android.R.color.system_tertiary_fixed),
+            topIcon = getColor(android.R.color.system_primary_dark),
+            topText = getColor(android.R.color.system_primary_dark)
           )
         }
       )

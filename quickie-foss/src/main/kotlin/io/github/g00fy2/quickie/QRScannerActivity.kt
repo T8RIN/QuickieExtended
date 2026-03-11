@@ -279,9 +279,13 @@ internal class QRScannerActivity : AppCompatActivity() {
       showTorchToggle = it.showTorchToggle
       useFrontCamera = it.useFrontCamera
       showCloseButton = it.showCloseButton
-      binding.overlayView.setButtonColors(
-        tint = it.buttonsTint,
-        background = it.buttonsBackground
+      binding.overlayView.setColors(
+        buttonTint = it.buttonsTint,
+        buttonBackground = it.buttonsBackground,
+        frameHighlighted = it.frameHighlighted,
+        frame = it.frame,
+        topIcon = it.topIcon,
+        topText = it.topText,
       )
 
       if (it.keepScreenOn) window.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)

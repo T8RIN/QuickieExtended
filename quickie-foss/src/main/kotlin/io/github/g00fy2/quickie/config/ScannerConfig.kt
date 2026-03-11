@@ -19,6 +19,10 @@ class ScannerConfig internal constructor(
   internal val keepScreenOn: Boolean,
   internal val buttonsTint: Int?,
   internal val buttonsBackground: Int?,
+  internal val frameHighlighted: Int?,
+  internal val frame: Int?,
+  internal val topIcon: Int?,
+  internal val topText: Int?
 ) {
 
   class Builder {
@@ -33,6 +37,10 @@ class ScannerConfig internal constructor(
     private var keepScreenOn: Boolean = false
     private var buttonsTint: Int? = null
     private var buttonsBackground: Int? = null
+    private var frameHighlighted: Int? = null
+    private var frame: Int? = null
+    private var topIcon: Int? = null
+    private var topText: Int? = null
 
     /**
      * Set a list of interested barcode formats. List must not be empty.
@@ -82,12 +90,20 @@ class ScannerConfig internal constructor(
      */
     fun setKeepScreenOn(enable: Boolean): Builder = apply { keepScreenOn = enable }
 
-    fun setButtonColors(
-      tint: Int?,
-      container: Int?
+    fun setColors(
+      buttonTint: Int?,
+      buttonBackground: Int?,
+      frameHighlighted: Int?,
+      frame: Int?,
+      topIcon: Int?,
+      topText: Int?
     ) = apply {
-      buttonsTint = tint
-      buttonsBackground = container
+      this.buttonsTint = buttonTint
+      this.buttonsBackground = buttonBackground
+      this.frameHighlighted = frameHighlighted
+      this.frame = frame
+      this.topIcon = topIcon
+      this.topText = topText
     }
 
     /**
@@ -106,6 +122,10 @@ class ScannerConfig internal constructor(
         keepScreenOn = keepScreenOn,
         buttonsTint = buttonsTint,
         buttonsBackground = buttonsBackground,
+        frameHighlighted = frameHighlighted,
+        frame = frame,
+        topIcon = topIcon,
+        topText = topText
       )
   }
 

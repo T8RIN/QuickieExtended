@@ -19,6 +19,7 @@ import android.widget.FrameLayout
 import androidx.core.content.ContextCompat
 import androidx.core.content.res.ResourcesCompat
 import androidx.core.graphics.ColorUtils
+import androidx.core.graphics.drawable.DrawableCompat
 import com.google.android.material.button.MaterialButton
 import io.github.g00fy2.quickie.databinding.QuickieOverlayViewBinding
 import kotlin.math.min
@@ -33,8 +34,8 @@ internal class QROverlayView @JvmOverloads constructor(
 
   private val binding = QuickieOverlayViewBinding.inflate(LayoutInflater.from(context), this)
   private val grayColor = ContextCompat.getColor(context, R.color.quickie_gray)
-  private var tint: Int? = null
-  private var background: Int? = null
+  private var frameHighlighted: Int? = null
+  private var frame: Int? = null
   private val backgroundColor = ColorUtils.setAlphaComponent(Color.BLACK, BACKGROUND_ALPHA.roundToInt())
   private val alphaPaint = Paint().apply { alpha = BACKGROUND_ALPHA.roundToInt() }
   private val strokePaint = Paint(Paint.ANTI_ALIAS_FLAG)
@@ -80,9 +81,7 @@ internal class QROverlayView @JvmOverloads constructor(
 
   @Suppress("UnsafeCallOnNullableType")
   override fun onDraw(canvas: Canvas) {
-    strokePaint.color = Color.valueOf(if (isHighlighted) (tint ?: grayColor) else (background ?: grayColor)).let {
-      Color.valueOf(it.red(), it.green(), it.blue(), 1f).toArgb()
-    }
+    strokePaint.color = if (isHighlighted) (frameHighlighted ?: grayColor) else (frame ?: grayColor)
     maskCanvas!!.drawColor(backgroundColor)
     maskCanvas!!.drawRoundRect(outerFrame, outerRadius, outerRadius, strokePaint)
     maskCanvas!!.drawRoundRect(innerFrame, innerRadius, innerRadius, transparentPaint)
@@ -137,16 +136,45 @@ internal class QROverlayView @JvmOverloads constructor(
     binding.galleryImageView.setOnClickListener { action(!it.isSelected) }
   }
 
-  fun setButtonColors(
-    tint: Int?,
-    background: Int?
+  fun setColors(
+    buttonTint: Int?,
+    buttonBackground: Int?,
+    frameHighlighted: Int?,
+    frame: Int?,
+    topIcon: Int?,
+    topText: Int?
   ) {
-    this.tint = tint
-    this.background = background
+    this.frameHighlighted = frameHighlighted ?: buttonTint
+    this.frame = frame ?: buttonBackground
 
-    tint?.let {
-      binding.progressBar.indeterminateTintList = ColorStateList.valueOf(tint)
-      binding.loadingText.setTextColor(tint)
+    (this.frameHighlighted ?: this.frame)?.let {
+      binding.progressBar.indeterminateTintList = ColorStateList.valueOf(it)
+      binding.loadingText.setTextColor(it)
+    }
+
+    topText?.let {
+      binding.titleTextView.setTextColor(topText)
+    }
+
+    topIcon?.let {
+      binding.titleTextView.let { textView ->
+        val drawables = textView.compoundDrawablesRelative
+
+        for (i in drawables.indices) {
+          drawables[i]?.let { drawable ->
+            val wrapped = DrawableCompat.wrap(drawable).mutate()
+            DrawableCompat.setTint(wrapped, topIcon)
+            drawables[i] = wrapped
+          }
+        }
+
+        textView.setCompoundDrawablesRelative(
+          drawables[0],
+          drawables[1],
+          drawables[2],
+          drawables[3]
+        )
+      }
     }
 
     listOf(
@@ -154,7 +182,10 @@ internal class QROverlayView @JvmOverloads constructor(
       binding.galleryImageView,
       binding.torchImageView
     ).forEach {
-      it.setColors(tint, background)
+      it.setColors(
+        tint = buttonTint,
+        background = buttonBackground
+      )
     }
   }
 
